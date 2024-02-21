@@ -6,6 +6,7 @@ import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp2024.ast.TypeUtils;
 import pt.up.fe.specs.util.exceptions.NotImplementedException;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -32,7 +33,8 @@ public class JmmSymbolTable implements SymbolTable {
 
     @Override
     public List<String> getImports() {
-        throw new NotImplementedException();
+        return new ArrayList<>();
+        //throw new NotImplementedException();
     }
 
     @Override
@@ -42,12 +44,14 @@ public class JmmSymbolTable implements SymbolTable {
 
     @Override
     public String getSuper() {
-        throw new NotImplementedException();
+        return "";
+        //throw new NotImplementedException();
     }
 
     @Override
     public List<Symbol> getFields() {
-        throw new NotImplementedException();
+        return new ArrayList<>();
+        //throw new NotImplementedException();
     }
 
     @Override

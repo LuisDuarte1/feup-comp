@@ -28,10 +28,21 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         addVisit(VAR_REF_EXPR, this::visitVarRef);
         addVisit(BINARY_EXPR, this::visitBinExpr);
         addVisit(INTEGER_LITERAL, this::visitInteger);
+        addVisit(UNARY_EXPR, this::visitUnaryExpr);
 
         setDefaultVisit(this::defaultVisit);
     }
 
+
+    protected OllirExprResult visitUnaryExpr(JmmNode node, Void unused){
+
+        String code = node.get("op") +
+                // TODO (luisd): Maybe throw if there are multiple children?
+                node.getJmmChild(0);
+
+        return new OllirExprResult(code);
+
+    }
 
     private OllirExprResult visitInteger(JmmNode node, Void unused) {
         var intType = new Type(TypeUtils.getIntTypeName(), false);
