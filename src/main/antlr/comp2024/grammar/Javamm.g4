@@ -32,6 +32,7 @@ BOOL : 'boolean' ;
 PUBLIC : 'public' ;
 RETURN : 'return' ;
 IMPORT : 'import' ;
+STRING : 'String' ;
 
 INTEGER : '0' | [1-9][0-9]* ;
 ID : LETTER (LETTER | DIGIT | UNDERSCR | DOLLAR)* ;
@@ -46,11 +47,11 @@ program
     ;
 
 importDecl
-    : IMPORT ID (DOT ID)* SEMI
+    : IMPORT modules+=ID (DOT modules+=ID)* SEMI
     ;
 
-classDecl
-    : CLASS name=ID ('extends' ID)?
+classDecl locals[boolean hasParent=false]
+    : CLASS name=ID ('extends' {$hasParent = true;} parent=ID)?
         LCURLY
         varDecl*
         methodDecl*
@@ -58,38 +59,40 @@ classDecl
     ;
 
 varDecl
-    : type name=ID SEMI
+    : typename=type name=ID SEMI
     ;
 
 type
-    : INT LBRACKET RBRACKET
-    | INT ELLIPSIS
-    | BOOL
-    | name= INT
-    | ID ;
+    : INT LBRACKET RBRACKET #IntArrayType
+    | INT ELLIPSIS #IntVarargsType
+    | BOOL #BoolType
+    | STRING #StrType
+    | INT #IntType
+    | name= ID  #ObjectType
+    ;
 
 methodDecl locals[boolean isPublic=false] //Guarantees that methodDecl always has an isPublic value
     : (PUBLIC {$isPublic=true;})? 'static' 'void' name='main'
-        LPAREN'String'LBRACKET RBRACKET ID RPAREN
-        LCURLY varDecl* stmt* RCURLY
+        LPAREN STRING LBRACKET RBRACKET ID RPAREN
+        LCURLY varDecl* stmt* RCURLY #MainMethod
     | (PUBLIC {$isPublic=true;})?
-        type name=ID
+        returnType=type name=ID
         LPAREN (param (COMMA param)*)? RPAREN
-        LCURLY varDecl* stmt* RETURN expr SEMI RCURLY
+        LCURLY varDecl* stmt* RETURN returnExpr=expr SEMI RCURLY #Method
 
     ;
 
 param
-    : type name=ID
+    : typename=type name=ID
     ;
 
 stmt
-    : LCURLY stmt* RCURLY #MultipleStmts
-    | 'if' LPAREN expr RPAREN stmt 'else' stmt #IfStmt
-    | 'while' LPAREN expr RPAREN stmt #WhileStmt
+    : LCURLY stmt* RCURLY #BlockStmt
+    | 'if' LPAREN ifCond=expr RPAREN ifExpr=stmt 'else' elseExpr=stmt #IfStmt
+    | 'while' LPAREN whileCond=expr RPAREN whileExpr=stmt #WhileStmt
     | expr SEMI #ExprStmt
     | expr EQUALS expr SEMI #AssignStmt
-    | expr LBRACKET expr RBRACKET EQUALS expr SEMI #AssignBracketStmt
+    | expr LBRACKET arrayIdx=expr RBRACKET EQUALS expr SEMI #ListAssignStmt
     ;
 
 expr
@@ -97,19 +100,20 @@ expr
     | NOT expr #UnaryExpr
     | expr op= (MUL | DIV) expr #BinaryExpr //
     | expr op= (ADD | SUB) expr #BinaryExpr //
-    | expr op=LESS expr #BinaryExpr
-    | expr op=LOGICAL_AND expr #BinaryExpr
+    | expr op= LESS expr #BinaryExpr
+    | expr op= LOGICAL_AND expr #BinaryExpr
     | expr LBRACKET expr RBRACKET #ListAccess
-    | expr DOT 'length' #MethodCall
-    | expr DOT ID LPAREN
+    | expr DOT 'length' #LengthCall
+    | expr DOT name=ID LPAREN
         (expr (COMMA expr)*)?
         RPAREN #MethodCall
     | NEW name=ID LPAREN (expr (COMMA expr)*)? RPAREN #NewMethod
     | NEW INT LBRACKET expr RBRACKET #NewArray
-    | LBRACKET (expr (COMMA expr)*)? RBRACKET #List
-    | value=INTEGER #IntegerLiteral //
-    | 'true' #TrueExpr
-    | 'false' #FalseExpr
-    | 'this' #ThisExpr
+    | LBRACKET (expr (COMMA expr)*)? RBRACKET #Array
+
+    | value=INTEGER #IntegerLiteral//
+    | 'true' #TrueLiteral
+    | 'false' #FalseLiteral
+    | 'this' #ThisLiteral
     | name=ID #VarRefExpr //
     ;

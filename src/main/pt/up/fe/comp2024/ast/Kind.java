@@ -14,16 +14,44 @@ public enum Kind {
     METHOD_DECL,
     PARAM,
     ASSIGN_STMT,
-    RETURN_STMT,
     UNARY_EXPR,
 
     BINARY_EXPR,
     INTEGER_LITERAL,
-    VAR_REF_EXPR;
+    PRIORITY_EXPR,
+    LENGTH_CALL,
+    METHOD_CALL,
+
+    NEW_METHOD,
+
+    NEW_ARRAY,
+    ARRAY,
+
+    TRUE_LITERAL,
+
+    FALSE_LITERAL,
+
+    THIS_LITERAL,
+
+    LIST_ACCESS,
+
+    VAR_REF_EXPR,
+
+    BLOCK_STMT,
+
+    IF_STMT,
+
+    WHILE_STMT,
+
+    EXPR_STMT,
+
+    LIST_ASSIGN_STMT
+    ;
 
 
-    private static final Set<Kind> STATEMENTS = Set.of(ASSIGN_STMT, RETURN_STMT);
-    private static final Set<Kind> EXPRESSIONS = Set.of(BINARY_EXPR, INTEGER_LITERAL, VAR_REF_EXPR);
+    private static final Set<Kind> STATEMENTS = Set.of(BLOCK_STMT, IF_STMT, WHILE_STMT, EXPR_STMT, ASSIGN_STMT, LIST_ASSIGN_STMT);
+    private static final Set<Kind> EXPRESSIONS = Set.of(PRIORITY_EXPR, UNARY_EXPR, BINARY_EXPR, LIST_ACCESS, LENGTH_CALL,
+            METHOD_CALL, NEW_METHOD, NEW_ARRAY, ARRAY, INTEGER_LITERAL, TRUE_LITERAL, FALSE_LITERAL, THIS_LITERAL, VAR_REF_EXPR);
 
     private final String name;
 
