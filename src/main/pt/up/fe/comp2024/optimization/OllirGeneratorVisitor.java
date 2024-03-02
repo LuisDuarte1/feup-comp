@@ -8,7 +8,7 @@ import pt.up.fe.comp2024.ast.NodeUtils;
 import pt.up.fe.comp2024.ast.TypeUtils;
 
 import static pt.up.fe.comp2024.ast.Kind.*;
-
+//TODO(luisd): fix OllirGneratorVistor
 /**
  * Generates OLLIR code from JmmNodes that are not expressions.
  */
@@ -37,7 +37,7 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
 
         addVisit(PROGRAM, this::visitProgram);
         addVisit(CLASS_DECL, this::visitClass);
-        addVisit(METHOD_DECL, this::visitMethodDecl);
+        //addVisit(METHOD_DECL, this::visitMethodDecl);
         addVisit(PARAM, this::visitParam);
         //addVisit(RETURN_STMT, this::visitReturn);
         addVisit(ASSIGN_STMT, this::visitAssignStmt);
@@ -79,9 +79,9 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
 
 
     private String visitReturn(JmmNode node, Void unused) {
-
-        String methodName = node.getAncestor(METHOD_DECL).map(method -> method.get("name")).orElseThrow();
-        Type retType = table.getReturnType(methodName);
+        //TODO: Rework this
+        //String methodName = node.getAncestor(METHOD_DECL).map(method -> method.get("name")).orElseThrow();
+        Type retType = table.getReturnType("");
 
         StringBuilder code = new StringBuilder();
 
@@ -167,10 +167,11 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         for (var child : node.getChildren()) {
             var result = visit(child);
 
-            if (METHOD_DECL.check(child) && needNl) {
-                code.append(NL);
-                needNl = false;
-            }
+            //TODO: Rework this
+            //if (METHOD_DECL.check(child) && needNl) {
+            //    code.append(NL);
+            //    needNl = false;
+            //}
 
             code.append(result);
         }

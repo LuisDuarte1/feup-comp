@@ -5,55 +5,63 @@ import pt.up.fe.specs.util.SpecsStrings;
 
 import java.util.Arrays;
 import java.util.Set;
+import java.util.List;
 
 public enum Kind {
     PROGRAM,
+    IMPORT_DECL,
     CLASS_DECL,
     VAR_DECL,
-    TYPE,
-    METHOD_DECL,
     PARAM,
-    ASSIGN_STMT,
-    UNARY_EXPR,
 
-    BINARY_EXPR,
-    INTEGER_LITERAL,
+    //Type
+    INT_ARRAY_TYPE,
+    INT_VARARGS_TYPE,
+    BOOL_TYPE,
+    STR_TYPE,
+    INT_TYPE,
+    OBJECT_TYPE,
+
+    //MethodDecl
+    MAIN_METHOD,
+    METHOD,
+
+    //Stmt
+    BLOCK_STMT,
+    IF_STMT,
+    WHILE_STMT,
+    EXPR_STMT,
+    ASSIGN_STMT,
+    LIST_ASSIGN_STMT,
+
+    //Expr
     PRIORITY_EXPR,
+    UNARY_EXPR,
+    BINARY_EXPR,
+    LIST_ACCESS,
     LENGTH_CALL,
     METHOD_CALL,
-
     NEW_METHOD,
-
     NEW_ARRAY,
     ARRAY,
-
+    INTEGER_LITERAL,
     TRUE_LITERAL,
-
     FALSE_LITERAL,
-
     THIS_LITERAL,
-
-    LIST_ACCESS,
-
-    VAR_REF_EXPR,
-
-    BLOCK_STMT,
-
-    IF_STMT,
-
-    WHILE_STMT,
-
-    EXPR_STMT,
-
-    LIST_ASSIGN_STMT
+    VAR_REF_EXPR
     ;
 
-
-    private static final Set<Kind> STATEMENTS = Set.of(BLOCK_STMT, IF_STMT, WHILE_STMT, EXPR_STMT, ASSIGN_STMT, LIST_ASSIGN_STMT);
-    private static final Set<Kind> EXPRESSIONS = Set.of(PRIORITY_EXPR, UNARY_EXPR, BINARY_EXPR, LIST_ACCESS, LENGTH_CALL,
+    public static final Set<Kind> TYPES = Set.of(INT_ARRAY_TYPE, INT_VARARGS_TYPE, BOOL_TYPE, STR_TYPE, INT_TYPE, OBJECT_TYPE);
+    public static final Set<Kind> METHOD_DECLS = Set.of(MAIN_METHOD, METHOD);
+    public static final Set<Kind> STATEMENTS = Set.of(BLOCK_STMT, IF_STMT, WHILE_STMT, EXPR_STMT, ASSIGN_STMT, LIST_ASSIGN_STMT);
+    public static final Set<Kind> EXPRESSIONS = Set.of(PRIORITY_EXPR, UNARY_EXPR, BINARY_EXPR, LIST_ACCESS, LENGTH_CALL,
             METHOD_CALL, NEW_METHOD, NEW_ARRAY, ARRAY, INTEGER_LITERAL, TRUE_LITERAL, FALSE_LITERAL, THIS_LITERAL, VAR_REF_EXPR);
 
     private final String name;
+
+    public static List<JmmNode> getTypeChildren(JmmNode parent){
+        return parent.getChildren().stream().filter(node -> Kind.fromString(node.getKind()).isType()).toList();
+    }
 
     private Kind(String name) {
         this.name = name;
@@ -81,6 +89,15 @@ public enum Kind {
     public String toString() {
         return getNodeName();
     }
+    /**
+     * @return true if this kind represents a type, false otherwise
+     */
+    public boolean isType() {return TYPES.contains(this);}
+
+    /**
+     * @return true if this kind represents a method declaration, false otherwise
+     */
+    public boolean isMethodDecl() {return METHOD_DECLS.contains(this);}
 
     /**
      * @return true if this kind represents a statement, false otherwise

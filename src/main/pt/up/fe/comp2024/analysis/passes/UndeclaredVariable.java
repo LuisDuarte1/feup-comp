@@ -20,7 +20,8 @@ public class UndeclaredVariable extends AnalysisVisitor {
 
     @Override
     public void buildVisitor() {
-        addVisit(Kind.METHOD_DECL, this::visitMethodDecl);
+        addVisit(Kind.METHOD, this::visitMethodDecl);
+        addVisit(Kind.MAIN_METHOD, this::visitMethodDecl);
         addVisit(Kind.VAR_REF_EXPR, this::visitVarRefExpr);
     }
 
@@ -50,6 +51,13 @@ public class UndeclaredVariable extends AnalysisVisitor {
         // Var is a declared variable, return
         if (table.getLocalVariables(currentMethod).stream()
                 .anyMatch(varDecl -> varDecl.getName().equals(varRefName))) {
+            return null;
+        }
+
+        //TODO: Check if it's ok to change this: variables can be declared in class
+
+        if (table.getLocalVariables(table.getClassName()).stream()
+                .anyMatch(varDecl -> varDecl.getName().equals(varRefName))){
             return null;
         }
 

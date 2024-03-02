@@ -9,7 +9,7 @@ import pt.up.fe.specs.util.exceptions.NotImplementedException;
 import java.util.List;
 import java.util.Optional;
 
-import static pt.up.fe.comp2024.ast.Kind.TYPE;
+//import static pt.up.fe.comp2024.ast.Kind.TYPE;
 
 public class OptUtils {
     private static int tempNumber = -1;
@@ -32,7 +32,8 @@ public class OptUtils {
 
     public static String toOllirType(JmmNode typeNode) {
 
-        TYPE.checkOrThrow(typeNode);
+        //TODO: Check this
+        //TYPE.checkOrThrow(typeNode);
 
         String typeName = typeNode.get("name");
 
