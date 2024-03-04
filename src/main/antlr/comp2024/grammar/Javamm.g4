@@ -33,9 +33,11 @@ PUBLIC : 'public' ;
 RETURN : 'return' ;
 IMPORT : 'import' ;
 STRING : 'String' ;
+MAIN : 'main';
+LENGTH : 'length';
 
 INTEGER : '0' | [1-9][0-9]* ;
-ID : LETTER (LETTER | DIGIT | UNDERSCR | DOLLAR)* ;
+ID : ((LETTER | UNDERSCR | DOLLAR)(LETTER | DIGIT | UNDERSCR | DOLLAR)*) | MAIN | LENGTH | STRING;
 
 LETTER : [a-zA-Z] ;
 DIGIT : [0-9] ;
@@ -75,7 +77,7 @@ type
     ;
 
 methodDecl locals[boolean isPublic=false] //Guarantees that methodDecl always has an isPublic value
-    : (PUBLIC {$isPublic=true;})? 'static' returnType='void' name='main'
+    : (PUBLIC {$isPublic=true;})? 'static' returnType='void' name=MAIN
         LPAREN STRING LBRACKET RBRACKET ID RPAREN
         LCURLY varDecl* stmt* RCURLY #MainMethod
     | (PUBLIC {$isPublic=true;})?
@@ -106,7 +108,7 @@ expr
     | expr op= LESS expr #BinaryExpr
     | expr op= LOGICAL_AND expr #BinaryExpr
     | expr LBRACKET expr RBRACKET #ListAccess
-    | expr DOT 'length' #LengthCall
+    | expr DOT LENGTH #LengthCall
     | expr DOT name=ID LPAREN
         (expr (COMMA expr)*)?
         RPAREN #MethodCall
