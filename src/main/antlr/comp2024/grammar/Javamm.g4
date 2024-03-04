@@ -37,7 +37,7 @@ MAIN : 'main';
 LENGTH : 'length';
 
 INTEGER : '0' | [1-9][0-9]* ;
-ID : ((LETTER | UNDERSCR | DOLLAR)(LETTER | DIGIT | UNDERSCR | DOLLAR)*) | MAIN | LENGTH | STRING;
+ID : (LETTER | UNDERSCR | DOLLAR)(LETTER | DIGIT | UNDERSCR | DOLLAR)*;
 
 LETTER : [a-zA-Z] ;
 DIGIT : [0-9] ;
@@ -64,7 +64,7 @@ classDecl locals[boolean hasParent=false]
     ;
 
 varDecl
-    : typename=type name=ID SEMI
+    : typename=type name=(ID | MAIN | LENGTH | STRING) SEMI
     ;
 
 type
