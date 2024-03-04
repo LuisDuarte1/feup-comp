@@ -40,6 +40,9 @@ ID : LETTER (LETTER | DIGIT | UNDERSCR | DOLLAR)* ;
 LETTER : [a-zA-Z] ;
 DIGIT : [0-9] ;
 
+LINE_COMMENT : '//' (.*?) [\r\n] -> skip;
+MULTI_LINE_COMMENT : '/*' (.*?) '*/' -> skip;
+
 WS : [ \t\n\r\f]+ -> skip ;
 
 program

@@ -253,4 +253,37 @@ public class GrammarTest {
         TestUtils.parseVerbose("[10, 20, 30]", EXPRESSION);
     }
 
+    @Test
+    public void testLineComment(){
+        TestUtils.parseVerbose("""
+                int bloat() {
+                // poggers
+                return 1;
+                }""", INSTANCE_METHOD);
+
+        TestUtils.parseVerbose("""
+                int bloat() {
+                    return 1;
+                }
+                // poggers""", INSTANCE_METHOD);
+    }
+
+    @Test
+    public void testMultiLineComment(){
+        TestUtils.parseVerbose("""
+                int bloat() {
+                /* a rita é canss */
+                return 1;
+                }""", INSTANCE_METHOD);
+
+        TestUtils.parseVerbose("""
+                int bloat() {
+                /* sou um
+                    commentário multiline */
+                return 1;
+                }
+                """, INSTANCE_METHOD);
+    }
+
+
 }
