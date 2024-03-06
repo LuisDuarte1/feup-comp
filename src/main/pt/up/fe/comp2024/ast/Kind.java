@@ -48,8 +48,7 @@ public enum Kind {
     TRUE_LITERAL,
     FALSE_LITERAL,
     THIS_LITERAL,
-    VAR_REF_EXPR
-    ;
+    VAR_REF_EXPR;
 
     public static final Set<Kind> TYPES = Set.of(INT_ARRAY_TYPE, INT_VARARGS_TYPE, BOOL_TYPE, STR_TYPE, INT_TYPE, OBJECT_TYPE);
     public static final Set<Kind> METHOD_DECLS = Set.of(MAIN_METHOD, METHOD);
@@ -59,7 +58,7 @@ public enum Kind {
 
     private final String name;
 
-    public static List<JmmNode> getTypeChildren(JmmNode parent){
+    public static List<JmmNode> getTypeChildren(JmmNode parent) {
         return parent.getChildren().stream().filter(node -> Kind.fromString(node.getKind()).isType()).toList();
     }
 
@@ -89,15 +88,20 @@ public enum Kind {
     public String toString() {
         return getNodeName();
     }
+
     /**
      * @return true if this kind represents a type, false otherwise
      */
-    public boolean isType() {return TYPES.contains(this);}
+    public boolean isType() {
+        return TYPES.contains(this);
+    }
 
     /**
      * @return true if this kind represents a method declaration, false otherwise
      */
-    public boolean isMethodDecl() {return METHOD_DECLS.contains(this);}
+    public boolean isMethodDecl() {
+        return METHOD_DECLS.contains(this);
+    }
 
     /**
      * @return true if this kind represents a statement, false otherwise

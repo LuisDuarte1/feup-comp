@@ -3,11 +3,7 @@ package pt.up.fe.comp2024.symboltable;
 import pt.up.fe.comp.jmm.analysis.table.Symbol;
 import pt.up.fe.comp.jmm.analysis.table.SymbolTable;
 import pt.up.fe.comp.jmm.analysis.table.Type;
-import pt.up.fe.comp2024.JavammParser;
-import pt.up.fe.comp2024.ast.TypeUtils;
-import pt.up.fe.specs.util.exceptions.NotImplementedException;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -52,13 +48,11 @@ public class JmmSymbolTable implements SymbolTable {
     @Override
     public String getSuper() {
         return this.parentClass;
-        //throw new NotImplementedException();
     }
 
     @Override
     public List<Symbol> getFields() {
-        return this.locals.get(className);
-        //throw new NotImplementedException();
+        return Collections.unmodifiableList(this.locals.get(className));
     }
 
     @Override
