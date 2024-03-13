@@ -11,18 +11,12 @@ import pt.up.fe.specs.util.SpecsCheck;
 
 /**
  * Checks if the type of the expression in a return statement is compatible with the method return type.
- *
- * @author JBispo
  */
-public class UndeclaredVariable extends AnalysisVisitor {
-
-    private String currentMethod;
-
+public class ArithmeticOperation extends AnalysisVisitor {
     @Override
     public void buildVisitor() {
-        addVisit(Kind.METHOD, this::visitMethodDecl);
-        addVisit(Kind.MAIN_METHOD, this::visitMethodDecl);
-        addVisit(Kind.VAR_REF_EXPR, this::visitVarRefExpr);
+        addVisit(Kind.BINARY_EXPR, this::visitBinaryExpr);
+        addVisit(Kind.UNARY_EXPR, this::visitMethodDecl);
     }
 
     private Void visitMethodDecl(JmmNode method, SymbolTable table) {
@@ -30,11 +24,23 @@ public class UndeclaredVariable extends AnalysisVisitor {
         return null;
     }
 
-    private Void visitVarRefExpr(JmmNode varRefExpr, SymbolTable table) {
-        SpecsCheck.checkNotNull(currentMethod, () -> "Expected current method to be set");
+    private Void visitBinaryExpr(JmmNode binaryExpr, SymbolTable table) {
+        JmmNode expr1 = binaryExpr.getChild(0);
+        JmmNode expr2 = binaryExpr.getChild(1);
+        String opType = binaryExpr.get("op");
 
-        // Check if exists a parameter or variable declaration with the same name as the variable reference
-        var varRefName = varRefExpr.get("name");
+        switch (opType) {
+            case "+":
+            case "-":
+            case "*":
+            case "/":
+                if(expr1.getBina )
+                break;
+            case "<":
+                break;
+            case "&&":
+                break;
+        }
 
         // Var is a field, return
         if (table.getFields().stream()
@@ -63,8 +69,8 @@ public class UndeclaredVariable extends AnalysisVisitor {
         var message = String.format("Variable '%s' does not exist.", varRefName);
         addReport(Report.newError(
                 Stage.SEMANTIC,
-                NodeUtils.getLine(varRefExpr),
-                NodeUtils.getColumn(varRefExpr),
+                NodeUtils.getLine(binaryExpr),
+                NodeUtils.getColumn(binaryExpr),
                 message,
                 null)
         );

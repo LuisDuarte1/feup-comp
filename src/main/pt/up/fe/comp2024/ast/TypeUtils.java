@@ -62,13 +62,16 @@ public class TypeUtils {
         return result;
     }
 
+    /**
+     * @param binaryExpr
+     * @return Type of binary expression operands
+     */
     private static Type getBinExprType(JmmNode binaryExpr) {
-        // TODO: Simple implementation that needs to be expanded
-
         String operator = binaryExpr.get("op");
 
         return switch (operator) {
-            case "+", "*", "/", "-" -> new Type(INT_TYPE_NAME, false);
+            case "+", "*", "/", "-", "<" -> new Type(INT_TYPE_NAME, false);
+            case "&&" -> new Type(BOOL_TYPE_NAME, false);
             default ->
                     throw new RuntimeException("Unknown operator '" + operator + "' of expression '" + binaryExpr + "'");
         };

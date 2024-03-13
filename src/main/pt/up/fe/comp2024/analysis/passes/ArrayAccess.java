@@ -14,19 +14,34 @@ import pt.up.fe.specs.util.SpecsCheck;
  *
  * @author JBispo
  */
-public class UndeclaredVariable extends AnalysisVisitor {
+public class ArrayAccess extends AnalysisVisitor {
 
     private String currentMethod;
 
     @Override
     public void buildVisitor() {
-        addVisit(Kind.METHOD, this::visitMethodDecl);
-        addVisit(Kind.MAIN_METHOD, this::visitMethodDecl);
+        addVisit(Kind.NEW_ARRAY, this::visitArray);
+        addVisit(Kind.LIST_ACCESS, this::visitArray);
         addVisit(Kind.VAR_REF_EXPR, this::visitVarRefExpr);
     }
 
-    private Void visitMethodDecl(JmmNode method, SymbolTable table) {
-        currentMethod = method.get("name");
+    private Void visitArray(JmmNode array, SymbolTable table) {
+        var arrayName = array.get("name");
+        var arrayNumber = array.getChildren(1);
+        if (arrayNumber == (int)arrayNumber){
+            return null;
+        }
+
+        // Create error report
+        var message = String.format("Access '%s' does not exist.", arrayNumber);
+        addReport(Report.newError(
+                Stage.SEMANTIC,
+                NodeUtils.getLine(array),
+                NodeUtils.getColumn(array),
+                message,
+                null)
+        );
+
         return null;
     }
 
@@ -35,6 +50,11 @@ public class UndeclaredVariable extends AnalysisVisitor {
 
         // Check if exists a parameter or variable declaration with the same name as the variable reference
         var varRefName = varRefExpr.get("name");
+
+        if (table.getLocalVariables(currentMethod).stream()
+                .anyMatch(varDecl -> varDecl.getName().equals(varRefName))) {
+            return null;
+        }
 
         // Var is a field, return
         if (table.getFields().stream()
