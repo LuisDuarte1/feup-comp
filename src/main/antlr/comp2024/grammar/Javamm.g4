@@ -25,6 +25,8 @@ NOT : '!' ;
 LOGICAL_AND : '&&' ;
 LESS : '<' ;
 NEW : 'new';
+TRUE : 'true' ;
+FALSE : 'false' ;
 
 CLASS : 'class' ;
 INT : 'int' ;
@@ -115,10 +117,8 @@ expr
     | NEW name=ID LPAREN (expr (COMMA expr)*)? RPAREN #NewMethod
     | NEW INT LBRACKET expr RBRACKET #NewArray
     | LBRACKET (expr (COMMA expr)*)? RBRACKET #Array
-
     | value=INTEGER #IntegerLiteral//
-    | 'true' #TrueLiteral
-    | 'false' #FalseLiteral
+    | (TRUE | FALSE) #BooleanLiteral
     | 'this' #ThisLiteral
     | name=ID #VarRefExpr //
     ;

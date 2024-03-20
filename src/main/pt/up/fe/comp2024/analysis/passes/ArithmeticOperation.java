@@ -1,13 +1,15 @@
 package pt.up.fe.comp2024.analysis.passes;
 
 import pt.up.fe.comp.jmm.analysis.table.SymbolTable;
+import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.ast.JmmNode;
 import pt.up.fe.comp.jmm.report.Report;
 import pt.up.fe.comp.jmm.report.Stage;
 import pt.up.fe.comp2024.analysis.AnalysisVisitor;
 import pt.up.fe.comp2024.ast.Kind;
 import pt.up.fe.comp2024.ast.NodeUtils;
-import pt.up.fe.specs.util.SpecsCheck;
+
+import static pt.up.fe.comp2024.ast.TypeUtils.getExprType;
 
 /**
  * Checks if the type of the expression in a return statement is compatible with the method return type.
@@ -16,57 +18,12 @@ public class ArithmeticOperation extends AnalysisVisitor {
     @Override
     public void buildVisitor() {
         addVisit(Kind.BINARY_EXPR, this::visitBinaryExpr);
-        addVisit(Kind.UNARY_EXPR, this::visitMethodDecl);
+        //addVisit(Kind.UNARY_EXPR, this::visitMethodDecl);
     }
 
-    private Void visitMethodDecl(JmmNode method, SymbolTable table) {
-        currentMethod = method.get("name");
-        return null;
-    }
-
-    private Void visitBinaryExpr(JmmNode binaryExpr, SymbolTable table) {
-        JmmNode expr1 = binaryExpr.getChild(0);
-        JmmNode expr2 = binaryExpr.getChild(1);
-        String opType = binaryExpr.get("op");
-
-        switch (opType) {
-            case "+":
-            case "-":
-            case "*":
-            case "/":
-                if(expr1.getBina )
-                break;
-            case "<":
-                break;
-            case "&&":
-                break;
-        }
-
-        // Var is a field, return
-        if (table.getFields().stream()
-                .anyMatch(param -> param.getName().equals(varRefName))) {
-            return null;
-        }
-
-        // Var is a parameter, return
-        if (table.getParameters(currentMethod).stream()
-                .anyMatch(param -> param.getName().equals(varRefName))) {
-            return null;
-        }
-
-        // Var is a declared variable, return
-        if (table.getLocalVariables(currentMethod).stream()
-                .anyMatch(varDecl -> varDecl.getName().equals(varRefName))) {
-            return null;
-        }
-
-        // Var is an imported class, return
-        if (table.getImports().stream().anyMatch(importClass -> importClass.equals(varRefName))) {
-            return null;
-        }
-
+    private void createErrorReport(JmmNode binaryExpr, JmmNode expr1, Type typeExpr1, String operator) {
         // Create error report
-        var message = String.format("Variable '%s' does not exist.", varRefName);
+        var message = String.format("Operand '%s' of type %s is not compatible with operator %s.", expr1.toString(), typeExpr1.getName(), operator);
         addReport(Report.newError(
                 Stage.SEMANTIC,
                 NodeUtils.getLine(binaryExpr),
@@ -74,6 +31,23 @@ public class ArithmeticOperation extends AnalysisVisitor {
                 message,
                 null)
         );
+    }
+
+    private Void visitBinaryExpr(JmmNode binaryExpr, SymbolTable table) {
+        JmmNode expr1 = binaryExpr.getChild(0);
+        JmmNode expr2 = binaryExpr.getChild(1);
+
+        Type opType = getExprType(binaryExpr, table);
+
+        Type typeExpr1 = getExprType(expr1, table);
+        if (typeExpr1 != opType) {
+            createErrorReport(binaryExpr, expr1, typeExpr1, binaryExpr.get("op"));
+        }
+
+        Type typeExpr2 = getExprType(expr2, table);
+        if (typeExpr2 != opType) {
+            createErrorReport(binaryExpr, expr2, typeExpr2, binaryExpr.get("op"));
+        }
 
         return null;
     }

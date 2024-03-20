@@ -1,6 +1,6 @@
 import A;
 
-class ClassNotImported {
+class ClassImported {
 
     public static void main(String[] args) {
 
