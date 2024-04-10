@@ -215,6 +215,11 @@ public class JasminGenerator {
         var op = switch (binaryOp.getOperation().getOpType()) {
             case ADD -> "iadd";
             case MUL -> "imul";
+            // TODO(luisd): test div and sub due to not being commutative
+            case DIV -> "idiv";
+            case SUB -> "isub";
+            case AND, ANDB -> "iand";
+            case OR, ORB -> "ior";
             default -> throw new NotImplementedException(binaryOp.getOperation().getOpType());
         };
 
@@ -226,12 +231,20 @@ public class JasminGenerator {
     private String generateReturn(ReturnInstruction returnInst) {
         var code = new StringBuilder();
 
-        // TODO: Hardcoded to int return type, needs to be expanded
-        if (returnInst.getReturnType().getTypeOfElement() == ElementType.VOID) {
-            return "return";
+        switch (returnInst.getReturnType().getTypeOfElement()){
+            case VOID -> code.append("return");
+            case INT32, BOOLEAN -> {
+                code.append(generators.apply(returnInst.getOperand()));
+                code.append("ireturn");
+            }
+            case CLASS -> {
+                code.append(generators.apply(returnInst.getOperand()));
+                code.append("areturn");
+            }
+            default -> throw new RuntimeException(
+                    String.format("Return type %s not handled", returnInst.getReturnType().getTypeOfElement().name()));
+
         }
-        code.append(generators.apply(returnInst.getOperand()));
-        code.append("ireturn").append(NL);
 
         return code.toString();
     }
