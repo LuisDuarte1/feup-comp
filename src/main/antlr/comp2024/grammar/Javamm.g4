@@ -104,7 +104,7 @@ stmt
 
 expr
     : LPAREN expr RPAREN #PriorityExpr
-    | NOT expr #UnaryExpr
+    | op= NOT expr #UnaryExpr
     | expr op= (MUL | DIV) expr #BinaryExpr //
     | expr op= (ADD | SUB) expr #BinaryExpr //
     | expr op= LESS expr #BinaryExpr

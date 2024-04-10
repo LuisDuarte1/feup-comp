@@ -18,16 +18,17 @@ public class ArithmeticOperation extends AnalysisVisitor {
     @Override
     public void buildVisitor() {
         addVisit(Kind.BINARY_EXPR, this::visitBinaryExpr);
-        //addVisit(Kind.UNARY_EXPR, this::visitMethodDecl);
+        addVisit(Kind.UNARY_EXPR, this::visitUnaryExpr);
     }
 
-    private void createErrorReport(JmmNode binaryExpr, JmmNode expr1, Type typeExpr1, String operator) {
+    private void createErrorReport(JmmNode expr, JmmNode operand, Type typeExpr1, String operator) {
+        String array = typeExpr1.isArray() ? " array" : "";
         // Create error report
-        var message = String.format("Operand '%s' of type %s is not compatible with operator %s.", expr1.toString(), typeExpr1.getName(), operator);
+        var message = String.format("Operand '%s' of type %s is not compatible with operator %s.", operand.toString(), typeExpr1.getName() + array, operator);
         addReport(Report.newError(
                 Stage.SEMANTIC,
-                NodeUtils.getLine(binaryExpr),
-                NodeUtils.getColumn(binaryExpr),
+                NodeUtils.getLine(expr),
+                NodeUtils.getColumn(expr),
                 message,
                 null)
         );
@@ -40,13 +41,26 @@ public class ArithmeticOperation extends AnalysisVisitor {
         Type opType = getExprType(binaryExpr, table);
 
         Type typeExpr1 = getExprType(expr1, table);
-        if (typeExpr1 != opType) {
+        if (!typeExpr1.equals(opType)) {
             createErrorReport(binaryExpr, expr1, typeExpr1, binaryExpr.get("op"));
         }
 
         Type typeExpr2 = getExprType(expr2, table);
-        if (typeExpr2 != opType) {
+        if (!typeExpr2.equals(opType)) {
             createErrorReport(binaryExpr, expr2, typeExpr2, binaryExpr.get("op"));
+        }
+
+        return null;
+    }
+
+    private Void visitUnaryExpr(JmmNode unaryExpr, SymbolTable table) {
+        JmmNode expr = unaryExpr.getChild(0);
+
+        Type opType = getExprType(unaryExpr, table);
+        Type typeExpr = getExprType(expr, table);
+
+        if (!typeExpr.equals(opType)) {
+            createErrorReport(unaryExpr, expr, typeExpr, unaryExpr.get("op"));
         }
 
         return null;

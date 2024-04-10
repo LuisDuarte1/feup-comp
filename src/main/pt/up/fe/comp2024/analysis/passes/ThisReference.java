@@ -21,21 +21,45 @@ import static pt.up.fe.comp2024.ast.TypeUtils.getVarExprType;
  *
  * @author JBispo
  */
-public class ArrayAccess extends AnalysisVisitor {
+public class ThisReference extends AnalysisVisitor {
 
     //private String currentMethod;
 
     @Override
     public void buildVisitor() {
         addVisit(Kind.NEW_ARRAY, this::visitNewArray);
+        addVisit(Kind.LIST_ACCESS, this::visitListAccessIndex);
         addVisit(Kind.LIST_ACCESS, this::visitListAccess);
     }
 
     private Void visitNewArray(JmmNode array, SymbolTable table) {
+        System.out.println("Here");
         JmmNode arrayNumber = array.getChild(0);
 
         Type arrayNumberType = getExprType(arrayNumber, table);
-        if (Objects.equals(arrayNumberType.getName(), "int")) {
+        if (Objects.equals(arrayNumberType.getName(), "int")){
+            return null;
+        }
+
+        // Create error report
+        var message = String.format("Access '%s' isn't a number.", arrayNumber);
+        addReport(Report.newError(
+                Stage.SEMANTIC,
+                NodeUtils.getLine(array),
+                NodeUtils.getColumn(array),
+                message,
+                null)
+        );
+
+        return null;
+    }
+
+    private Void visitListAccessIndex(JmmNode array, SymbolTable table) {
+        System.out.println("Here");
+        JmmNode arrayNumber = array.getChild(1);
+        Type arrayNumberType = getExprType(arrayNumber, table);
+        System.out.println(arrayNumberType);
+        if (Objects.equals(arrayNumberType.getName(), "int")){
             return null;
         }
 
@@ -54,32 +78,18 @@ public class ArrayAccess extends AnalysisVisitor {
 
     private Void visitListAccess(JmmNode array, SymbolTable table) {
         JmmNode arrayName = array.getChild(0);
-        Type arrayNameType = getExprType(arrayName, table);
-        if (!arrayNameType.isArray()) {
-            // Create error report
-            var message = String.format("Access isn't done over an array");
-            addReport(Report.newError(
-                    Stage.SEMANTIC,
-                    NodeUtils.getLine(array),
-                    NodeUtils.getColumn(array),
-                    message,
-                    null)
-            );
-        }
-
-        JmmNode arrayNumber = array.getChild(1);
-        Type arrayNumberType = getExprType(arrayNumber, table);
-        if (Objects.equals(arrayNumberType.getName(), "int")) {
+        Type arrayNameType = getVarExprType(arrayName, table);
+        if (arrayNameType.isArray()){
             return null;
         }
 
         // Create error report
-        var message2 = String.format("Access '%s' isn't a number.", arrayNumber);
+        var message = String.format("Access isn't done over an array");
         addReport(Report.newError(
                 Stage.SEMANTIC,
                 NodeUtils.getLine(array),
                 NodeUtils.getColumn(array),
-                message2,
+                message,
                 null)
         );
 

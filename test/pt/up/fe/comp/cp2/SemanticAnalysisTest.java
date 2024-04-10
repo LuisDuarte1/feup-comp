@@ -51,6 +51,19 @@ public class SemanticAnalysisTest {
     }
 
     @Test
+    public void negateInt() {
+        var result = TestUtils.analyse(SpecsIo.getResource("pt/up/fe/comp/cp2/semanticanalysis/OursNegateInt.jmm"));
+        TestUtils.mustFail(result);
+    }
+
+    @Test
+    public void negateBool() {
+        var result = TestUtils.analyse(SpecsIo.getResource("pt/up/fe/comp/cp2/semanticanalysis/OursNegateBool.jmm"));
+        TestUtils.noErrors(result);
+        System.out.println(result.getReports());
+    }
+
+    @Test
     public void arrayAccessOnInt() {
         var result = TestUtils.analyse(SpecsIo.getResource("pt/up/fe/comp/cp2/semanticanalysis/ArrayAccessOnInt.jmm"));
         TestUtils.mustFail(result);
@@ -59,6 +72,26 @@ public class SemanticAnalysisTest {
     @Test
     public void arrayIndexNotInt() {
         var result = TestUtils.analyse(SpecsIo.getResource("pt/up/fe/comp/cp2/semanticanalysis/ArrayIndexNotInt.jmm"));
+        TestUtils.mustFail(result);
+    }
+
+    @Test
+    public void arrayAccessValid(){
+        var result = TestUtils.analyse(SpecsIo.getResource("pt/up/fe/comp/cp2/semanticanalysis/OursArrayAccessValid.jmm"));
+        TestUtils.noErrors(result);
+        System.out.println(result.getReports());
+    }
+
+    @Test
+    public void arrayDeclarationValid(){
+        var result = TestUtils.analyse(SpecsIo.getResource("pt/up/fe/comp/cp2/semanticanalysis/OursArrayDeclarationValid.jmm"));
+        TestUtils.noErrors(result);
+        System.out.println(result.getReports());
+    }
+
+    @Test
+    public void arrayDeclarationInvalid(){
+        var result = TestUtils.analyse(SpecsIo.getResource("pt/up/fe/comp/cp2/semanticanalysis/OursArrayDeclarationInvalid.jmm"));
         TestUtils.mustFail(result);
     }
 

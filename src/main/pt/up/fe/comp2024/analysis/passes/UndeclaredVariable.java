@@ -55,7 +55,7 @@ public class UndeclaredVariable extends AnalysisVisitor {
 
         // Var is a declared variable, return
         Optional<Symbol> variable = table.getLocalVariables(currentMethod).stream().filter(varDecl -> varDecl.getName().equals(varRefName)).findFirst();
-        if (variable.isPresent()){
+        if (variable.isPresent()) {
             varRefExpr.putObject("type", variable.get().getType());
             return null;
         }

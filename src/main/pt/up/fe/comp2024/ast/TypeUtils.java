@@ -1,9 +1,11 @@
 package pt.up.fe.comp2024.ast;
 
+import pt.up.fe.comp.jmm.analysis.table.Symbol;
 import pt.up.fe.comp.jmm.analysis.table.SymbolTable;
 import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.ast.JmmNode;
 
+import java.util.Objects;
 import java.util.Optional;
 
 import static pt.up.fe.comp2024.ast.Kind.CLASS_DECL;
@@ -41,9 +43,9 @@ public class TypeUtils {
         // TODO: Simple implementation that needs to be expanded
 
         Kind kind = Kind.fromString(expr.getKind());
-        System.out.println(expr.getKind());
         Type type = switch (kind) {
             case BINARY_EXPR -> getBinExprType(expr);
+            case UNARY_EXPR -> getUnaryExprType(expr);
             case VAR_REF_EXPR -> getVarExprType(expr, table);
             case INTEGER_LITERAL -> new Type(INT_TYPE_NAME, false);
             case BOOLEAN_LITERAL -> new Type(BOOL_TYPE_NAME, false);
@@ -83,23 +85,57 @@ public class TypeUtils {
         };
     }
 
+    /**
+     * @param unaryExpr
+     * @return Type of unary expression operands
+     */
+    private static Type getUnaryExprType(JmmNode unaryExpr) {
+        String operator = unaryExpr.get("op");
+        if (Objects.equals(operator, "!")) return new Type(BOOL_TYPE_NAME, false);
+        else throw new RuntimeException("Unknown operator '" + operator + "' of expression '" + unaryExpr + "'");
+    }
+
     public static Type getVarExprType(JmmNode varRefExpr, SymbolTable table) {
-        if(varRefExpr.hasAttribute("type"))
+        //Node was annotated during semantic analysis
+        if (varRefExpr.hasAttribute("type")) {
             return varRefExpr.getObject("type", Type.class);
+        }
+        //Node was not annotated
         else {
+            var varRefName = varRefExpr.get("name");
+
             Optional<JmmNode> currentMethodNode = varRefExpr.getAncestor(METHOD);
             Optional<JmmNode> currentClassNode = varRefExpr.getAncestor(CLASS_DECL);
-            if(currentMethodNode.isPresent()){
+
+            if (currentMethodNode.isPresent()) {
                 String currentMethod = currentMethodNode.get().get("name");
-                //TODO: Get locals and return type
-            } else if(currentClassNode.isPresent()){
-                String currentClass = currentClassNode.get().get("name");
-                //TODO: Get fields and return type
-            } else {
-                throw new RuntimeException("Could not access " + varRefExpr.toString() + " ancestor method or class");
+
+                // Var is a parameter
+                Optional<Symbol> parameter = table.getParameters(currentMethod).stream().filter(param -> param.getName().equals(varRefName)).findFirst();
+                if (parameter.isPresent()) {
+                    varRefExpr.putObject("type", parameter.get().getType());
+                    return parameter.get().getType();
+                }
+
+                // Var is a declared variable
+                Optional<Symbol> variable = table.getLocalVariables(currentMethod).stream().filter(varDecl -> varDecl.getName().equals(varRefName)).findFirst();
+                if (variable.isPresent()) {
+                    varRefExpr.putObject("type", variable.get().getType());
+                    return variable.get().getType();
+                }
             }
+            if (currentClassNode.isPresent()) {
+                String currentClass = currentClassNode.get().get("name");
+
+                // Var is a field
+                Optional<Symbol> field = table.getFields().stream().filter(param -> param.getName().equals(varRefName)).findFirst();
+                if (field.isPresent()) {
+                    varRefExpr.putObject("type", field.get().getType());
+                    return field.get().getType();
+                }
+            }
+            throw new RuntimeException("Could not access " + varRefExpr + " parent method or class");
         }
-        return null;
     }
 
 
