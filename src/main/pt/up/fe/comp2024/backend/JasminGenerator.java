@@ -99,10 +99,24 @@ public class JasminGenerator {
 
             code.append(generators.apply(method));
         }
-
+        System.out.println(code);
         return code.toString();
     }
 
+    private String getJasminTypeOfElement(Type element){
+        return switch (element.getTypeOfElement()) {
+            case INT32 -> "I";
+            case BOOLEAN -> "Z";
+            case STRING -> "Ljava/lang/String;";
+            case ARRAYREF ->
+                    "[".repeat(((ArrayType) element).getNumDimensions())
+                            + getJasminTypeOfElement(((ArrayType) element).getElementType());
+            case VOID -> "V";
+            default -> throw new RuntimeException(
+                    String.format("Jasmin type not handled: %s", element.getTypeOfElement().name())
+            );
+        };
+    }
 
     private String generateMethod(Method method) {
 
@@ -115,11 +129,17 @@ public class JasminGenerator {
         var modifier = method.getMethodAccessModifier() != AccessModifier.DEFAULT ?
                 method.getMethodAccessModifier().name().toLowerCase() + " " :
                 "";
+        if (method.isStaticMethod()){
+            modifier = modifier + "static" + " ";
+        }
 
         var methodName = method.getMethodName();
-
-        // TODO: Hardcoded param types and return type, needs to be expanded
-        code.append("\n.method ").append(modifier).append(methodName).append("(I)I").append(NL);
+        var paramsType = method.getParams().stream().map(Element::getType).map(this::getJasminTypeOfElement)
+                .reduce("", (subtotal, element) -> subtotal + element);
+        var returnType = getJasminTypeOfElement(method.getReturnType());
+        code.append("\n.method ").append(modifier).append(methodName)
+                .append(String.format("(%s)%s", paramsType, returnType))
+                .append(NL);
 
         // Add limits
         code.append(TAB).append(".limit stack 99").append(NL);
@@ -201,7 +221,9 @@ public class JasminGenerator {
         var code = new StringBuilder();
 
         // TODO: Hardcoded to int return type, needs to be expanded
-
+        if (returnInst.getReturnType().getTypeOfElement() == ElementType.VOID) {
+            return "return";
+        }
         code.append(generators.apply(returnInst.getOperand()));
         code.append("ireturn").append(NL);
 
