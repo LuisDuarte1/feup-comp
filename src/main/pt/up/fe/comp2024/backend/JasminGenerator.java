@@ -177,9 +177,15 @@ public class JasminGenerator {
 
         // get register
         var reg = currentMethod.getVarTable().get(operand.getName()).getVirtualReg();
+        var type = currentMethod.getVarTable().get(operand.getName()).getVarType();
 
-        // TODO: Hardcoded for int type, needs to be expanded
-        code.append("istore ").append(reg).append(NL);
+        switch (type.getTypeOfElement()){
+            case INT32, BOOLEAN -> code.append("istore ").append(reg).append(NL);
+            case CLASS -> code.append("astore ").append(reg).append(NL);
+            default -> throw new RuntimeException(
+                    String.format("Assign type %s not handled", type.getTypeOfElement().name())
+            );
+        }
 
         return code.toString();
     }
