@@ -12,6 +12,7 @@ import pt.up.fe.specs.util.SpecsCheck;
 import pt.up.fe.comp2024.ast.TypeUtils;
 
 import static pt.up.fe.comp2024.ast.TypeUtils.getExprType;
+import static pt.up.fe.comp2024.ast.TypeUtils.getVarExprType;
 
 /**
  * Checks if the type of the expression in a return statement is compatible with the method return type.
@@ -25,8 +26,8 @@ public class ArrayAccess extends AnalysisVisitor {
     @Override
     public void buildVisitor() {
         addVisit(Kind.NEW_ARRAY, this::visitNewArray);
+        addVisit(Kind.LIST_ACCESS, this::visitListAccessIndex);
         addVisit(Kind.LIST_ACCESS, this::visitListAccess);
-        //addVisit(Kind.VAR_REF_EXPR, this::visitVarRefExpr);
     }
 
     private Void visitNewArray(JmmNode array, SymbolTable table) {
@@ -50,7 +51,7 @@ public class ArrayAccess extends AnalysisVisitor {
         return null;
     }
 
-    private Void visitListAccess(JmmNode array, SymbolTable table) {
+    private Void visitListAccessIndex(JmmNode array, SymbolTable table) {
         JmmNode arrayNumber = array.getChild(1);
         Type arrayNumberType = getExprType(arrayNumber, table);
         if (arrayNumberType.getName() == "int"){
@@ -67,56 +68,27 @@ public class ArrayAccess extends AnalysisVisitor {
                 null)
         );
 
-
         return null;
     }
 
-//    private Void visitVarRefExpr(JmmNode varRefExpr, SymbolTable table) {
-//        SpecsCheck.checkNotNull(currentMethod, () -> "Expected current method to be set");
-//
-//        // Check if exists a parameter or variable declaration with the same name as the variable reference
-//        var varRefName = varRefExpr.get("name");
-//
-//        if (table.getLocalVariables(currentMethod).stream()
-//                .anyMatch(varDecl -> varDecl.getName().equals(varRefName))) {
-//            return null;
-//        }
-//
-//        // Var is a field, return
-//        if (table.getFields().stream()
-//                .anyMatch(param -> param.getName().equals(varRefName))) {
-//            return null;
-//        }
-//
-//        // Var is a parameter, return
-//        if (table.getParameters(currentMethod).stream()
-//                .anyMatch(param -> param.getName().equals(varRefName))) {
-//            return null;
-//        }
-//
-//        // Var is a declared variable, return
-//        if (table.getLocalVariables(currentMethod).stream()
-//                .anyMatch(varDecl -> varDecl.getName().equals(varRefName))) {
-//            return null;
-//        }
-//
-//        // Var is an imported class, return
-//        if (table.getImports().stream().anyMatch(importClass -> importClass.equals(varRefName))) {
-//            return null;
-//        }
-//
-//        // Create error report
-//        var message = String.format("Variable '%s' does not exist.", varRefName);
-//        addReport(Report.newError(
-//                Stage.SEMANTIC,
-//                NodeUtils.getLine(varRefExpr),
-//                NodeUtils.getColumn(varRefExpr),
-//                message,
-//                null)
-//        );
-//
-//        return null;
-//    }
+    private Void visitListAccess(JmmNode array, SymbolTable table) {
+        JmmNode arrayName = array.getChild(0);
+        Type arrayNameType = getVarExprType(arrayName, table);
+        if (arrayNameType.isArray()){
+            return null;
+        }
 
+        // Create error report
+        var message = String.format("Access isn't done over an array");
+        addReport(Report.newError(
+                Stage.SEMANTIC,
+                NodeUtils.getLine(array),
+                NodeUtils.getColumn(array),
+                message,
+                null)
+        );
+
+        return null;
+    }
 
 }

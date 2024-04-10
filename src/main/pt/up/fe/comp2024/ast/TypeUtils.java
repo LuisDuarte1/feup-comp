@@ -4,6 +4,11 @@ import pt.up.fe.comp.jmm.analysis.table.SymbolTable;
 import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.ast.JmmNode;
 
+import java.util.Optional;
+
+import static pt.up.fe.comp2024.ast.Kind.CLASS_DECL;
+import static pt.up.fe.comp2024.ast.Kind.METHOD;
+
 
 public class TypeUtils {
 
@@ -36,7 +41,7 @@ public class TypeUtils {
         // TODO: Simple implementation that needs to be expanded
 
         Kind kind = Kind.fromString(expr.getKind());
-
+        System.out.println(expr.getKind());
         Type type = switch (kind) {
             case BINARY_EXPR -> getBinExprType(expr);
             case VAR_REF_EXPR -> getVarExprType(expr, table);
@@ -78,9 +83,23 @@ public class TypeUtils {
         };
     }
 
-    private static Type getVarExprType(JmmNode varRefExpr, SymbolTable table) {
-        // TODO: Simple implementation that needs to be expanded
-        return new Type(varRefExpr.get("name"), false);
+    public static Type getVarExprType(JmmNode varRefExpr, SymbolTable table) {
+        if(varRefExpr.hasAttribute("type"))
+            return varRefExpr.getObject("type", Type.class);
+        else {
+            Optional<JmmNode> currentMethodNode = varRefExpr.getAncestor(METHOD);
+            Optional<JmmNode> currentClassNode = varRefExpr.getAncestor(CLASS_DECL);
+            if(currentMethodNode.isPresent()){
+                String currentMethod = currentMethodNode.get().get("name");
+                //TODO: Get locals and return type
+            } else if(currentClassNode.isPresent()){
+                String currentClass = currentClassNode.get().get("name");
+                //TODO: Get fields and return type
+            } else {
+                throw new RuntimeException("Could not access " + varRefExpr.toString() + " ancestor method or class");
+            }
+        }
+        return null;
     }
 
 

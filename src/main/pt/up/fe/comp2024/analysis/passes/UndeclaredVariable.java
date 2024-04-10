@@ -1,5 +1,6 @@
 package pt.up.fe.comp2024.analysis.passes;
 
+import pt.up.fe.comp.jmm.analysis.table.Symbol;
 import pt.up.fe.comp.jmm.analysis.table.SymbolTable;
 import pt.up.fe.comp.jmm.ast.JmmNode;
 import pt.up.fe.comp.jmm.report.Report;
@@ -8,6 +9,8 @@ import pt.up.fe.comp2024.analysis.AnalysisVisitor;
 import pt.up.fe.comp2024.ast.Kind;
 import pt.up.fe.comp2024.ast.NodeUtils;
 import pt.up.fe.specs.util.SpecsCheck;
+
+import java.util.Optional;
 
 /**
  * Checks if the type of the expression in a return statement is compatible with the method return type.
@@ -37,20 +40,23 @@ public class UndeclaredVariable extends AnalysisVisitor {
         var varRefName = varRefExpr.get("name");
 
         // Var is a field, return
-        if (table.getFields().stream()
-                .anyMatch(param -> param.getName().equals(varRefName))) {
+        Optional<Symbol> field = table.getFields().stream().filter(param -> param.getName().equals(varRefName)).findFirst();
+        if (field.isPresent()) {
+            varRefExpr.putObject("type", field.get().getType());
             return null;
         }
 
         // Var is a parameter, return
-        if (table.getParameters(currentMethod).stream()
-                .anyMatch(param -> param.getName().equals(varRefName))) {
+        Optional<Symbol> parameter = table.getParameters(currentMethod).stream().filter(param -> param.getName().equals(varRefName)).findFirst();
+        if (parameter.isPresent()) {
+            varRefExpr.putObject("type", parameter.get().getType());
             return null;
         }
 
         // Var is a declared variable, return
-        if (table.getLocalVariables(currentMethod).stream()
-                .anyMatch(varDecl -> varDecl.getName().equals(varRefName))) {
+        Optional<Symbol> variable = table.getLocalVariables(currentMethod).stream().filter(varDecl -> varDecl.getName().equals(varRefName)).findFirst();
+        if (variable.isPresent()){
+            varRefExpr.putObject("type", variable.get().getType());
             return null;
         }
 
