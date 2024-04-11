@@ -1,5 +1,6 @@
 package pt.up.fe.comp2024.analysis.passes;
 
+import pt.up.fe.comp.jmm.analysis.table.Symbol;
 import pt.up.fe.comp.jmm.analysis.table.SymbolTable;
 import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.ast.JmmNode;
@@ -12,7 +13,9 @@ import pt.up.fe.specs.util.SpecsCheck;
 import pt.up.fe.comp2024.ast.TypeUtils;
 
 import java.util.Objects;
+import java.util.Optional;
 
+import static pt.up.fe.comp2024.ast.Kind.METHOD;
 import static pt.up.fe.comp2024.ast.TypeUtils.getExprType;
 import static pt.up.fe.comp2024.ast.TypeUtils.getVarExprType;
 
@@ -27,26 +30,24 @@ public class ThisReference extends AnalysisVisitor {
 
     @Override
     public void buildVisitor() {
-        addVisit(Kind.NEW_ARRAY, this::visitNewArray);
-        addVisit(Kind.LIST_ACCESS, this::visitListAccessIndex);
-        addVisit(Kind.LIST_ACCESS, this::visitListAccess);
+        addVisit(Kind.THIS_LITERAL, this::visitThis);
+        addVisit(Kind.ASSIGN_STMT, this::visitThisAssignment);
     }
 
-    private Void visitNewArray(JmmNode array, SymbolTable table) {
-        System.out.println("Here");
-        JmmNode arrayNumber = array.getChild(0);
-
-        Type arrayNumberType = getExprType(arrayNumber, table);
-        if (Objects.equals(arrayNumberType.getName(), "int")){
-            return null;
+    private Void visitThis(JmmNode thisRef, SymbolTable table) {
+        Optional<JmmNode> currentMethodNode = thisRef.getAncestor(METHOD);
+        if (currentMethodNode.isPresent()) {
+            String currentMethod = currentMethodNode.get().getKind();
+            if (Objects.equals(currentMethod, "Method"))
+                return null;
         }
 
         // Create error report
-        var message = String.format("Access '%s' isn't a number.", arrayNumber);
+        var message = String.format("“this” expression cannot be used in a static method");
         addReport(Report.newError(
                 Stage.SEMANTIC,
-                NodeUtils.getLine(array),
-                NodeUtils.getColumn(array),
+                NodeUtils.getLine(thisRef),
+                NodeUtils.getColumn(thisRef),
                 message,
                 null)
         );
@@ -54,41 +55,21 @@ public class ThisReference extends AnalysisVisitor {
         return null;
     }
 
-    private Void visitListAccessIndex(JmmNode array, SymbolTable table) {
-        System.out.println("Here");
-        JmmNode arrayNumber = array.getChild(1);
-        Type arrayNumberType = getExprType(arrayNumber, table);
-        System.out.println(arrayNumberType);
-        if (Objects.equals(arrayNumberType.getName(), "int")){
+    private Void visitThisAssignment(JmmNode thisAssignment, SymbolTable table) {
+        JmmNode object = thisAssignment.getChild(0);
+        JmmNode thisObject = thisAssignment.getChild(1);
+
+        if (Objects.equals(thisObject.getKind(), "ThisLiteral")) {
+            //TODO:
             return null;
         }
 
         // Create error report
-        var message = String.format("Access '%s' isn't a number.", arrayNumber);
+        var message = String.format("“this” expression cannot be used in a static method");
         addReport(Report.newError(
                 Stage.SEMANTIC,
-                NodeUtils.getLine(array),
-                NodeUtils.getColumn(array),
-                message,
-                null)
-        );
-
-        return null;
-    }
-
-    private Void visitListAccess(JmmNode array, SymbolTable table) {
-        JmmNode arrayName = array.getChild(0);
-        Type arrayNameType = getVarExprType(arrayName, table);
-        if (arrayNameType.isArray()){
-            return null;
-        }
-
-        // Create error report
-        var message = String.format("Access isn't done over an array");
-        addReport(Report.newError(
-                Stage.SEMANTIC,
-                NodeUtils.getLine(array),
-                NodeUtils.getColumn(array),
+                NodeUtils.getLine(thisAssignment),
+                NodeUtils.getColumn(thisAssignment),
                 message,
                 null)
         );

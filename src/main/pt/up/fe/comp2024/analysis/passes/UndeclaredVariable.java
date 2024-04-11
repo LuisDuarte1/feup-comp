@@ -9,8 +9,9 @@ import pt.up.fe.comp2024.analysis.AnalysisVisitor;
 import pt.up.fe.comp2024.ast.Kind;
 import pt.up.fe.comp2024.ast.NodeUtils;
 import pt.up.fe.specs.util.SpecsCheck;
-
 import java.util.Optional;
+
+import static pt.up.fe.comp2024.ast.TypeUtils.annotateType;
 
 /**
  * Checks if the type of the expression in a return statement is compatible with the method return type.
@@ -42,21 +43,21 @@ public class UndeclaredVariable extends AnalysisVisitor {
         // Var is a field, return
         Optional<Symbol> field = table.getFields().stream().filter(param -> param.getName().equals(varRefName)).findFirst();
         if (field.isPresent()) {
-            varRefExpr.putObject("type", field.get().getType());
+            varRefExpr.putObject("type", annotateType(field.get().getType(), table));
             return null;
         }
 
         // Var is a parameter, return
         Optional<Symbol> parameter = table.getParameters(currentMethod).stream().filter(param -> param.getName().equals(varRefName)).findFirst();
         if (parameter.isPresent()) {
-            varRefExpr.putObject("type", parameter.get().getType());
+            varRefExpr.putObject("type", annotateType(parameter.get().getType(), table));
             return null;
         }
 
         // Var is a declared variable, return
         Optional<Symbol> variable = table.getLocalVariables(currentMethod).stream().filter(varDecl -> varDecl.getName().equals(varRefName)).findFirst();
         if (variable.isPresent()) {
-            varRefExpr.putObject("type", variable.get().getType());
+            varRefExpr.putObject("type", annotateType(variable.get().getType(), table));
             return null;
         }
 

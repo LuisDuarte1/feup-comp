@@ -39,6 +39,8 @@ public class ArithmeticOperation extends AnalysisVisitor {
         JmmNode expr2 = binaryExpr.getChild(1);
 
         Type opType = getExprType(binaryExpr, table);
+        binaryExpr.putObject("type", opType);
+
 
         Type typeExpr1 = getExprType(expr1, table);
         if (!typeExpr1.equals(opType)) {
@@ -58,6 +60,8 @@ public class ArithmeticOperation extends AnalysisVisitor {
 
         Type opType = getExprType(unaryExpr, table);
         Type typeExpr = getExprType(expr, table);
+
+        unaryExpr.putObject("type", opType);
 
         if (!typeExpr.equals(opType)) {
             createErrorReport(unaryExpr, expr, typeExpr, unaryExpr.get("op"));
