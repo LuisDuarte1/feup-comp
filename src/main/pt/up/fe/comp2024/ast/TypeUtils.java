@@ -9,8 +9,7 @@ import pt.up.fe.comp2024.symboltable.JmmSymbolTable;
 import java.util.Objects;
 import java.util.Optional;
 
-import static pt.up.fe.comp2024.ast.Kind.CLASS_DECL;
-import static pt.up.fe.comp2024.ast.Kind.METHOD;
+import static pt.up.fe.comp2024.ast.Kind.*;
 
 
 public class TypeUtils {
@@ -63,9 +62,9 @@ public class TypeUtils {
                 case BINARY_EXPR -> getBinExprType(expr);
                 case LIST_ACCESS -> getVarExprType(expr.getChild(0), table);
                 case LENGTH_CALL -> new Type(INT_TYPE_NAME, false);
+                case METHOD_CALL -> table.getReturnType(expr.get("name"));
                 case NEW_OBJECT -> annotateType(new Type(expr.get("name"), false), table);
-                //TODO: Method Call, NewMethod Type
-                case NEW_ARRAY -> new Type(INT_TYPE_NAME, true);
+                case NEW_ARRAY, ARRAY -> new Type(INT_TYPE_NAME, true);
                 case INTEGER_LITERAL -> new Type(INT_TYPE_NAME, false);
                 case BOOLEAN_LITERAL -> new Type(BOOL_TYPE_NAME, false);
                 case THIS_LITERAL -> annotateType(new Type(table.getClassName(), false), table);
@@ -82,7 +81,8 @@ public class TypeUtils {
         Kind kind = Kind.fromString(type.getKind());
 
         Type result = switch (kind) {
-            case INT_ARRAY_TYPE, INT_VARARGS_TYPE -> new Type(INT_TYPE_NAME, true);
+            case INT_ARRAY_TYPE -> new Type(INT_TYPE_NAME, true);
+            case INT_VARARGS_TYPE -> new Type(type.toString(), true);
             case BOOL_TYPE -> new Type(BOOL_TYPE_NAME, false);
             case STR_TYPE -> new Type(STR_TYPE_NAME, false);
             case INT_TYPE -> new Type(INT_TYPE_NAME, false);

@@ -1,0 +1,11 @@
+class ThisInMain extends A {
+
+    public static void main(String[] args) {
+        A a;
+        a = this;
+    }
+
+    public int foo() {
+        return true;
+    }
+}

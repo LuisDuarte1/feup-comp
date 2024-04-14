@@ -83,7 +83,7 @@ methodDecl locals[boolean isPublic=false] //Guarantees that methodDecl always ha
         LPAREN STRING LBRACKET RBRACKET ID RPAREN
         LCURLY varDecl* stmt* RCURLY #MainMethod
     | (PUBLIC {$isPublic=true;})?
-        type name=ID
+        returnType=type name=ID
         LPAREN (param (COMMA param)*)? RPAREN
         LCURLY varDecl* stmt* RETURN returnExpr=expr SEMI RCURLY #Method
 

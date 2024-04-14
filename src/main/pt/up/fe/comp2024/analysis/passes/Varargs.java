@@ -24,34 +24,31 @@ import static pt.up.fe.comp2024.ast.TypeUtils.getVarExprType;
  *
  * @author JBispo
  */
-public class ThisReference extends AnalysisVisitor {
+public class Varargs extends AnalysisVisitor {
 
     //private String currentMethod;
 
     @Override
     public void buildVisitor() {
-        addVisit(Kind.THIS_LITERAL, this::visitThis);
+        addVisit(Kind.VAR_DECL, this::visitVarDecl);
     }
 
-    private Void visitThis(JmmNode thisRef, SymbolTable table) {
-        Optional<JmmNode> currentMethodNode = thisRef.getAncestor(METHOD);
-        if (currentMethodNode.isPresent()) {
-            String currentMethod = currentMethodNode.get().getKind();
-            if (Objects.equals(currentMethod, "Method"))
-                return null;
+    private Void visitVarDecl(JmmNode varDecl, SymbolTable table) {
+        JmmNode varType = varDecl.getChild(0);
+        if (Objects.equals(varType.toString(), "IntVarargsType")) {
+            // Create error report
+            var message = String.format("Variable declarations cannot be vararg");
+            addReport(Report.newError(
+                    Stage.SEMANTIC,
+                    NodeUtils.getLine(varDecl),
+                    NodeUtils.getColumn(varDecl),
+                    message,
+                    null)
+            );
         }
-
-        // Create error report
-        var message = String.format("'this' expression cannot be used in a static method");
-        addReport(Report.newError(
-                Stage.SEMANTIC,
-                NodeUtils.getLine(thisRef),
-                NodeUtils.getColumn(thisRef),
-                message,
-                null)
-        );
 
         return null;
     }
+
 
 }

@@ -1,6 +1,4 @@
-import A;
-
-class ThisAsAnObject {
+class ThisInMethod extends A {
 
     public static void main(String[] args) {
 

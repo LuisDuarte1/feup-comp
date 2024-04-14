@@ -9,6 +9,10 @@ import pt.up.fe.comp2024.analysis.AnalysisVisitor;
 import pt.up.fe.comp2024.ast.Kind;
 import pt.up.fe.comp2024.ast.NodeUtils;
 import pt.up.fe.specs.util.SpecsCheck;
+
+import java.rmi.server.RemoteObjectInvocationHandler;
+import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import static pt.up.fe.comp2024.ast.TypeUtils.annotateType;
@@ -31,6 +35,55 @@ public class UndeclaredVariable extends AnalysisVisitor {
 
     private Void visitMethodDecl(JmmNode method, SymbolTable table) {
         currentMethod = method.get("name");
+
+        /*
+        if (!Objects.equals(currentMethod, "main")){
+            JmmNode returnExpr = method.getChild(method.getNumChildren() - 1);
+            System.out.println(returnExpr);
+            System.out.println(method.get("returnType"));
+            if (!Objects.equals(returnExpr.getKind(), method.get("returnType"))){
+                var message = "Incompatible return type";
+                addReport(Report.newError(
+                        Stage.SEMANTIC,
+                        NodeUtils.getLine(method),
+                        NodeUtils.getColumn(method),
+                        message,
+                        null)
+                );
+            }
+        }*/
+
+        List<Symbol> parameters = table.getParameters(currentMethod);
+        if (!parameters.isEmpty()) {
+            for (int i = 0; i < parameters.size() - 1; i++)
+                if (Objects.equals(parameters.get(i).getType().getName(), "IntVarargsType")) {
+                    var message = "Vararg type must be the last parameter";
+                    addReport(Report.newError(
+                            Stage.SEMANTIC,
+                            NodeUtils.getLine(method),
+                            NodeUtils.getColumn(method),
+                            message,
+                            null)
+                    );
+                }
+
+            if (Objects.equals(parameters.get(parameters.size() - 1).getType().getName(), "IntVarargsType")){
+                JmmNode returnExpr = method.getChild(method.getNumChildren() - 1);
+                if (Objects.equals(returnExpr.getKind(), "VarRefExpr"))
+                    if (Objects.equals(returnExpr.get("name"), parameters.get(parameters.size() - 1).getName())){
+                        var message = String.format("Method returns cannot be vararg");
+                        addReport(Report.newError(
+                                Stage.SEMANTIC,
+                                NodeUtils.getLine(method),
+                                NodeUtils.getColumn(method),
+                                message,
+                                null)
+                        );
+                    }
+            }
+
+        }
+
         return null;
     }
 
