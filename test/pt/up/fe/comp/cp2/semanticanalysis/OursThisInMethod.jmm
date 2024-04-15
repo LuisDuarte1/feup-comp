@@ -4,7 +4,7 @@ class ThisInMethod extends A {
 
     }
 
-    public int foo() {
+    public A foo() {
         A a;
         a = this;
 

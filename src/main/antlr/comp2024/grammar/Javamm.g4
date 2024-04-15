@@ -114,6 +114,9 @@ expr
     | expr DOT name=ID LPAREN
         (expr (COMMA expr)*)?
         RPAREN #MethodCall
+    | name=ID LPAREN
+        (expr (COMMA expr)*)?
+        RPAREN #MethodCall
     | NEW name=ID LPAREN (expr (COMMA expr)*)? RPAREN #NewObject
     | NEW INT LBRACKET expr RBRACKET #NewArray
     | LBRACKET (expr (COMMA expr)*)? RBRACKET #Array

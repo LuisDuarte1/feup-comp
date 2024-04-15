@@ -19,7 +19,7 @@ public class JmmAnalysisImpl implements JmmAnalysis {
     private final List<AnalysisPass> analysisPasses;
 
     public JmmAnalysisImpl() {
-        this.analysisPasses = List.of(new UndeclaredVariable(), new ArithmeticOperation(), new ArrayAccess(), new AssignmentType(), new ThisReference(), new Varargs(), new Conditions());
+        this.analysisPasses = List.of(new UndeclaredVariable(), new ArithmeticOperation(), new ArrayAccess(), new AssignmentType(), new ThisReference(), new Varargs(), new Conditions(), new MethodCall());
     }
 
     @Override

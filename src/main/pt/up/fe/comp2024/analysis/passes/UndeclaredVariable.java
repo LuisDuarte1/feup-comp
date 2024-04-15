@@ -2,6 +2,7 @@ package pt.up.fe.comp2024.analysis.passes;
 
 import pt.up.fe.comp.jmm.analysis.table.Symbol;
 import pt.up.fe.comp.jmm.analysis.table.SymbolTable;
+import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.ast.JmmNode;
 import pt.up.fe.comp.jmm.report.Report;
 import pt.up.fe.comp.jmm.report.Stage;
@@ -15,7 +16,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
-import static pt.up.fe.comp2024.ast.TypeUtils.annotateType;
+import static pt.up.fe.comp2024.ast.TypeUtils.*;
 
 /**
  * Checks if the type of the expression in a return statement is compatible with the method return type.
@@ -36,23 +37,6 @@ public class UndeclaredVariable extends AnalysisVisitor {
     private Void visitMethodDecl(JmmNode method, SymbolTable table) {
         currentMethod = method.get("name");
 
-        /*
-        if (!Objects.equals(currentMethod, "main")){
-            JmmNode returnExpr = method.getChild(method.getNumChildren() - 1);
-            System.out.println(returnExpr);
-            System.out.println(method.get("returnType"));
-            if (!Objects.equals(returnExpr.getKind(), method.get("returnType"))){
-                var message = "Incompatible return type";
-                addReport(Report.newError(
-                        Stage.SEMANTIC,
-                        NodeUtils.getLine(method),
-                        NodeUtils.getColumn(method),
-                        message,
-                        null)
-                );
-            }
-        }*/
-
         List<Symbol> parameters = table.getParameters(currentMethod);
         if (!parameters.isEmpty()) {
             for (int i = 0; i < parameters.size() - 1; i++)
@@ -69,8 +53,8 @@ public class UndeclaredVariable extends AnalysisVisitor {
 
             if (Objects.equals(parameters.get(parameters.size() - 1).getType().getName(), "IntVarargsType")){
                 JmmNode returnExpr = method.getChild(method.getNumChildren() - 1);
-                if (Objects.equals(returnExpr.getKind(), "VarRefExpr"))
-                    if (Objects.equals(returnExpr.get("name"), parameters.get(parameters.size() - 1).getName())){
+                if (Objects.equals(returnExpr.getKind(), "VarRefExpr")) {
+                    if (Objects.equals(returnExpr.get("name"), parameters.get(parameters.size() - 1).getName())) {
                         var message = String.format("Method returns cannot be vararg");
                         addReport(Report.newError(
                                 Stage.SEMANTIC,
@@ -80,8 +64,27 @@ public class UndeclaredVariable extends AnalysisVisitor {
                                 null)
                         );
                     }
+                } else return null;
             }
 
+        }
+
+        if (!Objects.equals(currentMethod, "main")){
+            JmmNode returnType = method.getChild(0);
+            JmmNode returnExpr = method.getChild(method.getNumChildren() - 1);
+            Type returnExprType = getExprType(returnExpr, table);
+            if(Objects.equals(returnExprType, null) && Objects.equals(returnExpr.getKind(), "MethodCall"))
+                return null;
+            if (!Objects.equals(getTypeFromGrammarType(returnType), returnExprType)){
+                var message = "Incompatible return type";
+                addReport(Report.newError(
+                        Stage.SEMANTIC,
+                        NodeUtils.getLine(method),
+                        NodeUtils.getColumn(method),
+                        message,
+                        null)
+                );
+            }
         }
 
         return null;
