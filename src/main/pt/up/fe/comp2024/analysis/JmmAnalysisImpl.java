@@ -19,7 +19,7 @@ public class JmmAnalysisImpl implements JmmAnalysis {
     private final List<AnalysisPass> analysisPasses;
 
     public JmmAnalysisImpl() {
-        this.analysisPasses = List.of(new UndeclaredVariable(), new ArithmeticOperation(), new ArrayAccess(), new AssignmentType(), new ThisReference(), new Varargs(), new Conditions(), new MethodCall());
+        this.analysisPasses = List.of(new UndeclaredVariable(), new MethodReturnType(), new ArithmeticOperation(), new ArrayAccess(), new AssignmentType(), new ThisReference(), new Varargs(), new Conditions(), new MethodCall());
     }
 
     @Override
@@ -37,8 +37,8 @@ public class JmmAnalysisImpl implements JmmAnalysis {
                 var passReports = analysisPass.analyze(rootNode, table);
                 reports.addAll(passReports);
 
-                if(analysisPass.getClass() == UndeclaredVariable.class){
-                    if(!reports.isEmpty()){
+                if (analysisPass.getClass() == UndeclaredVariable.class) {
+                    if (!reports.isEmpty()) {
                         System.out.println("Stopping semantic analysis early due to Undeclared Variable.\n");
                         break;
                     }

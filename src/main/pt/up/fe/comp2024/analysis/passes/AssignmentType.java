@@ -9,6 +9,8 @@ import pt.up.fe.comp2024.analysis.AnalysisVisitor;
 import pt.up.fe.comp2024.ast.Kind;
 import pt.up.fe.comp2024.ast.NodeUtils;
 
+import java.util.Objects;
+
 import static pt.up.fe.comp2024.ast.TypeUtils.areTypesAssignable;
 import static pt.up.fe.comp2024.ast.TypeUtils.getExprType;
 
@@ -29,6 +31,11 @@ public class AssignmentType extends AnalysisVisitor {
         if (!areTypesAssignable(typeExpr2, typeExpr1)) {
             String array1 = typeExpr1.isArray() ? " array" : "";
             String array2 = typeExpr2.isArray() ? " array" : "";
+
+            if(Objects.equals(typeExpr2.getName(), "imported")){
+                expr2.putObject("type", typeExpr1);
+                return null;
+            }
 
             // Create error report
             var message = String.format("Assignment of '%s' of type %s to %s of type %s is not allowed.", expr1.toString(), typeExpr1.getName() + array1, expr2.toString(), typeExpr2.getName() + array2);

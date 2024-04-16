@@ -27,8 +27,6 @@ import static pt.up.fe.comp2024.ast.TypeUtils.getVarExprType;
  */
 public class MethodCall extends AnalysisVisitor {
 
-    //private String currentMethod;
-
     @Override
     public void buildVisitor() {
         addVisit(Kind.METHOD_CALL, this::visitMethodCall);
@@ -41,16 +39,17 @@ public class MethodCall extends AnalysisVisitor {
         if (table.getClassName().equals(funcType.getName()) && table.getMethods().contains(memberCall.get("name"))) {
             List<Symbol> params = table.getParameters(memberCall.get("name"));
 
-            if(Objects.equals(params.get(params.size() - 1).getType(), new Type("IntVarargsType", true))) {
+            var lastParamType = params.get(params.size() - 1).getType();
+            if (lastParamType.hasAttribute("isVarArgs") && lastParamType.getObject("isVarArgs", Boolean.class)) {
                 boolean flag = true;
-                for(int i = 0; i < params.size(); i++)
+                for (int i = 0; i < params.size(); i++)
                     flag &= ("int".equals(TypeUtils.getExprType(memberCall.getChild(i + 1), table).getName()));
                 if (flag) return null;
             }
 
-            if(params.size() == (memberCall.getChildren().size() - 1)) {
+            if (params.size() == (memberCall.getChildren().size() - 1)) {
                 boolean flag = true;
-                for(int i = 0; i < params.size(); i++)
+                for (int i = 0; i < params.size(); i++)
                     flag &= (params.get(i).getType() == TypeUtils.getExprType(memberCall.getChild(i + 1), table));
                 if (flag) return null;
             }

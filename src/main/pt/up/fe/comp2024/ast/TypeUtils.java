@@ -60,9 +60,26 @@ public class TypeUtils {
                 case PRIORITY_EXPR -> getExprType(expr.getChild(0), table);
                 case UNARY_EXPR -> getUnaryExprType(expr);
                 case BINARY_EXPR -> getBinExprType(expr);
-                case LIST_ACCESS -> new Type(getVarExprType(expr.getChild(0), table).getName(), false); //Same type as array but the access itself is not an array
+                case LIST_ACCESS -> {
+                    var arrayType = getVarExprType(expr.getChild(0), table);
+                    yield new Type(arrayType.getName(), false); //Same type as array but the access itself is not an array
+                }
                 case LENGTH_CALL -> new Type(INT_TYPE_NAME, false);
-                case METHOD_CALL -> table.getReturnType(expr.get("name"));
+                case METHOD_CALL -> {
+                    var localType = table.getReturnType(expr.get("name"));
+                    if (localType != null) {
+                        yield localType;
+                    } else {
+                        if (expr.hasAttribute("object")) {
+                            var object = expr.getObject("object", JmmNode.class);
+                            if (table.getImports().contains(getExprType(object, table).getName())) //Class of the method is imported
+                            {
+                                yield new Type("imported", false);
+                            }
+                        }
+                    }
+                    throw new UnsupportedOperationException("Can't compute type for expression kind '" + kind + "'");
+                }
                 case NEW_OBJECT -> annotateType(new Type(expr.get("name"), false), table);
                 case NEW_ARRAY, ARRAY -> new Type(INT_TYPE_NAME, true);
                 case INTEGER_LITERAL -> new Type(INT_TYPE_NAME, false);
@@ -82,7 +99,11 @@ public class TypeUtils {
 
         Type result = switch (kind) {
             case INT_ARRAY_TYPE -> new Type(INT_TYPE_NAME, true);
-            case INT_VARARGS_TYPE -> new Type(type.toString(), true);
+            case INT_VARARGS_TYPE -> {
+                var temp = new Type(INT_TYPE_NAME, true);
+                temp.putObject("isVarArgs", true);
+                yield temp;
+            }
             case BOOL_TYPE -> new Type(BOOL_TYPE_NAME, false);
             case STR_TYPE -> new Type(STR_TYPE_NAME, false);
             case INT_TYPE -> new Type(INT_TYPE_NAME, false);
@@ -168,7 +189,8 @@ public class TypeUtils {
     public static boolean areTypesAssignable(Type sourceType, Type destinationType) {
         if (sourceType.equals(destinationType)) {
             return true;
-        } else if (sourceType.hasAttribute("parent") && (sourceType.getObject("parent").equals(destinationType.getName()))) return true;
+        } else if (sourceType.hasAttribute("parent") && (sourceType.getObject("parent").equals(destinationType.getName())))
+            return true;
         return sourceType.hasAttribute("imported") && destinationType.hasAttribute("imported");
     }
 }
