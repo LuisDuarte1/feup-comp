@@ -9,6 +9,8 @@ import pt.up.fe.specs.util.exceptions.NotImplementedException;
 import java.util.List;
 import java.util.Optional;
 
+import static pt.up.fe.comp2024.ast.Kind.VAR_DECL;
+
 //import static pt.up.fe.comp2024.ast.Kind.TYPE;
 
 public class OptUtils {
@@ -35,7 +37,7 @@ public class OptUtils {
         //TODO: Check this
         //TYPE.checkOrThrow(typeNode);
 
-        String typeName = typeNode.get("name");
+        String typeName = typeNode.getKind();
 
         return toOllirType(typeName);
     }
@@ -44,11 +46,12 @@ public class OptUtils {
         return toOllirType(type.getName());
     }
 
-    private static String toOllirType(String typeName) {
+    public static String toOllirType(String typeName) {
 
         String type = "." + switch (typeName) {
-            case "int" -> "i32";
-            default -> throw new NotImplementedException(typeName);
+            case "IntType", "int" -> "i32";
+            case "BoolType", "boolean" -> "bool";
+            default -> typeName;
         };
 
         return type;

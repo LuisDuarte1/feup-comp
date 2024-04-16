@@ -105,18 +105,18 @@ stmt
 expr
     : LPAREN expr RPAREN #PriorityExpr
     | op= NOT expr #UnaryExpr
-    | expr op= (MUL | DIV) expr #BinaryExpr //
-    | expr op= (ADD | SUB) expr #BinaryExpr //
-    | expr op= LESS expr #BinaryExpr
-    | expr op= LOGICAL_AND expr #BinaryExpr
-    | expr LBRACKET expr RBRACKET #ListAccess
-    | expr DOT LENGTH #LengthCall
-    | expr DOT name=ID LPAREN
-        (expr (COMMA expr)*)?
-        RPAREN #MethodCall
     | name=ID LPAREN
         (expr (COMMA expr)*)?
         RPAREN #MethodCall
+    | expr DOT name=ID LPAREN
+        (expr (COMMA expr)*)?
+        RPAREN #MethodCall
+    | expr LBRACKET expr RBRACKET #ListAccess
+    | expr DOT LENGTH #LengthCall
+    | expr op=(MUL | DIV) expr #BinaryExpr //
+    | expr op=(ADD | SUB) expr #BinaryExpr //
+    | expr op= LESS expr #BinaryExpr
+    | expr op= LOGICAL_AND expr #BinaryExpr
     | NEW name=ID LPAREN (expr (COMMA expr)*)? RPAREN #NewObject
     | NEW INT LBRACKET expr RBRACKET #NewArray
     | LBRACKET (expr (COMMA expr)*)? RBRACKET #Array

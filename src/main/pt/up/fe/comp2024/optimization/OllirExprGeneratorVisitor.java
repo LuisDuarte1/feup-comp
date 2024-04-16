@@ -6,6 +6,8 @@ import pt.up.fe.comp.jmm.ast.JmmNode;
 import pt.up.fe.comp.jmm.ast.PreorderJmmVisitor;
 import pt.up.fe.comp2024.ast.TypeUtils;
 
+import java.util.Objects;
+
 import static pt.up.fe.comp2024.ast.Kind.*;
 
 /**
@@ -29,7 +31,7 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         addVisit(BINARY_EXPR, this::visitBinExpr);
         addVisit(INTEGER_LITERAL, this::visitInteger);
         addVisit(UNARY_EXPR, this::visitUnaryExpr);
-
+        addVisit(METHOD_CALL, this::visitMethodCall);
         setDefaultVisit(this::defaultVisit);
     }
 
@@ -71,10 +73,19 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         computation.append(code).append(SPACE)
                 .append(ASSIGN).append(resOllirType).append(SPACE)
                 .append(lhs.getCode()).append(SPACE);
+        //infer type by result type
+        if(METHOD_CALL.check(node.getJmmChild(0))){
+            computation.append(resOllirType);
+        }
 
         Type type = TypeUtils.getExprType(node, table);
         computation.append(node.get("op")).append(OptUtils.toOllirType(type)).append(SPACE)
-                .append(rhs.getCode()).append(END_STMT);
+                .append(rhs.getCode());
+        //infer type by result type
+        if(METHOD_CALL.check(node.getJmmChild(1))){
+            computation.append(resOllirType);
+        }
+        computation.append(END_STMT);
 
         return new OllirExprResult(code, computation);
     }
@@ -107,4 +118,92 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         return OllirExprResult.EMPTY;
     }
 
+    public String getTypeFromParent(JmmNode node){
+        JmmNode currentNode = node;
+        while (!(currentNode.hasAttribute("type") || METHOD.check(currentNode) || MAIN_METHOD.check(currentNode))){
+            currentNode = currentNode.getParent(); // it always exists here
+        }
+        if(currentNode.hasAttribute("type")){
+            return OptUtils.toOllirType(currentNode.getObject("type", Type.class));
+        }
+        return null;
+    }
+
+
+    public OllirExprResult visitMethodCall(JmmNode node, Void unused){
+        var computation = new StringBuilder();
+        String code = OptUtils.getTemp();
+        String type = getTypeFromParent(node);
+        if (table.getMethods().contains(node.get("name")) && THIS_LITERAL.check(node.getJmmChild(0))) {
+            return methodCallHelper(node, computation, code, "this", type);
+        }
+        var ref = node.getChild(0).get("name");
+        // it mean it's an class field
+        if(table.getFields().stream().anyMatch((value) -> Objects.equals(value.getName(), ref))){
+            var field = table.getFields().stream().filter((value) -> Objects.equals(value.getName(), ref))
+                    .findFirst().orElseThrow();
+            return methodCallHelper(node, computation, code, field.getName(), type);
+        }
+
+        //we then check if it belongs to a local variable
+        var methodName = "";
+        JmmNode currNode = node;
+        boolean found = true;
+        while(!(METHOD.check(currNode) || MAIN_METHOD.check(currNode))){
+            currNode = currNode.getParent();
+        }
+        methodName = currNode.get("name");
+
+        if(table.getLocalVariables(methodName).stream().anyMatch((val) -> Objects.equals(val.getName(), ref))){
+            var field = table.getLocalVariables(methodName).stream()
+                    .filter((value) -> Objects.equals(value.getName(), ref))
+                    .findFirst().orElseThrow();
+            return methodCallHelper(node, computation, code, field.getName(), type);
+        }
+
+        if (table.getImports().contains(ref)){
+            var arguments = node.getChildren().stream().skip(1).map(this::visit).toList();
+            arguments.stream().map(OllirExprResult::getComputation).toList().forEach(computation::append);
+            if(type != null){
+                computation.append(String.format("%s%s :=%s invokestatic(%s, \"%s\"%s)%s;\n",
+                        code, type, type,
+                        ref,
+                        node.get("name"),
+                        arguments.stream().map(OllirExprResult::getCode).reduce("", (a,b) -> a + "," + b),
+                        type
+                ));
+            } else {
+                //if no type we return void
+                computation = new StringBuilder();
+                code = String.format("invokestatic(%s, \"%s\"%s).V",
+                        ref,
+                        node.get("name"),
+                        arguments.stream().map(OllirExprResult::getCode).reduce("", (a,b) -> a + "," + b));
+            }
+        }
+        return new OllirExprResult(code, computation.toString());
+    }
+
+    private OllirExprResult methodCallHelper(JmmNode node, StringBuilder computation, String code, String className,
+                                             String type) {
+        var arguments = node.getChildren().stream().skip(1).map(this::visit).toList();
+        arguments.stream().map(OllirExprResult::getComputation).toList().forEach(computation::append);
+        if(type != null){
+            computation.append(String.format("%s%s :=%s invokevirtual(%s, \"%s\"%s)%s;\n",
+                    code, type, type,
+                    className,
+                    node.get("name"),
+                    arguments.stream().map(OllirExprResult::getCode).reduce("", (a,b) -> a + "," + b),
+                    type
+            ));
+        } else {
+            //if no type we return void
+            computation = new StringBuilder();
+            code = String.format("invokevirtual(%s, \"%s\"%s).V",
+                    className,
+                    node.get("name"),
+                    arguments.stream().map(OllirExprResult::getCode).reduce("", (a,b) -> a + "," + b));
+        }
+        return new OllirExprResult(code, computation.toString());
+    }
 }
