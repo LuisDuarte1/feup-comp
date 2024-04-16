@@ -1,0 +1,10 @@
+class NegateInt {
+
+    public static void main(String[] args) {
+
+    }
+
+    public boolean foo() {
+        return !10;
+    }
+}

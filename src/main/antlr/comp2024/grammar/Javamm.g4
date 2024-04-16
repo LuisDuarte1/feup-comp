@@ -25,6 +25,8 @@ NOT : '!' ;
 LOGICAL_AND : '&&' ;
 LESS : '<' ;
 NEW : 'new';
+TRUE : 'true' ;
+FALSE : 'false' ;
 
 CLASS : 'class' ;
 INT : 'int' ;
@@ -81,7 +83,7 @@ methodDecl locals[boolean isPublic=false] //Guarantees that methodDecl always ha
         LPAREN STRING LBRACKET RBRACKET ID RPAREN
         LCURLY varDecl* stmt* RCURLY #MainMethod
     | (PUBLIC {$isPublic=true;})?
-        type name=ID
+        returnType=type name=ID
         LPAREN (param (COMMA param)*)? RPAREN
         LCURLY varDecl* stmt* RETURN returnExpr=expr SEMI RCURLY #Method
 
@@ -102,7 +104,7 @@ stmt
 
 expr
     : LPAREN expr RPAREN #PriorityExpr
-    | NOT expr #UnaryExpr
+    | op= NOT expr #UnaryExpr
     | expr op= (MUL | DIV) expr #BinaryExpr //
     | expr op= (ADD | SUB) expr #BinaryExpr //
     | expr op= LESS expr #BinaryExpr
@@ -112,13 +114,14 @@ expr
     | expr DOT name=ID LPAREN
         (expr (COMMA expr)*)?
         RPAREN #MethodCall
-    | NEW name=ID LPAREN (expr (COMMA expr)*)? RPAREN #NewMethod
+    | name=ID LPAREN
+        (expr (COMMA expr)*)?
+        RPAREN #MethodCall
+    | NEW name=ID LPAREN (expr (COMMA expr)*)? RPAREN #NewObject
     | NEW INT LBRACKET expr RBRACKET #NewArray
     | LBRACKET (expr (COMMA expr)*)? RBRACKET #Array
-
     | value=INTEGER #IntegerLiteral//
-    | 'true' #TrueLiteral
-    | 'false' #FalseLiteral
+    | (TRUE | FALSE) #BooleanLiteral
     | 'this' #ThisLiteral
     | name=ID #VarRefExpr //
     ;

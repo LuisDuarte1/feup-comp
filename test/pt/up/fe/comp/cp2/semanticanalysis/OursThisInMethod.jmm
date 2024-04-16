@@ -1,0 +1,13 @@
+class ThisInMethod extends A {
+
+    public static void main(String[] args) {
+
+    }
+
+    public A foo() {
+        A a;
+        a = this;
+
+        return a;
+    }
+}
