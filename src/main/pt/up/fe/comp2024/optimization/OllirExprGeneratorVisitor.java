@@ -173,8 +173,6 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
                         type
                 ));
             } else {
-                //if no type we return void
-                computation = new StringBuilder();
                 code = String.format("invokestatic(%s, \"%s\"%s).V",
                         ref,
                         node.get("name"),
@@ -197,8 +195,6 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
                     type
             ));
         } else {
-            //if no type we return void
-            computation = new StringBuilder();
             code = String.format("invokevirtual(%s, \"%s\"%s).V",
                     className,
                     node.get("name"),
