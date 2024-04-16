@@ -51,7 +51,7 @@ public class UndeclaredVariable extends AnalysisVisitor {
                     );
                 }
 
-            if (Objects.equals(parameters.get(parameters.size() - 1).getType().getName(), "IntVarargsType")){
+            if (Objects.equals(parameters.get(parameters.size() - 1).getType().getName(), "IntVarargsType")) {
                 JmmNode returnExpr = method.getChild(method.getNumChildren() - 1);
                 if (Objects.equals(returnExpr.getKind(), "VarRefExpr")) {
                     if (Objects.equals(returnExpr.get("name"), parameters.get(parameters.size() - 1).getName())) {
@@ -69,13 +69,16 @@ public class UndeclaredVariable extends AnalysisVisitor {
 
         }
 
-        if (!Objects.equals(currentMethod, "main")){
-            JmmNode returnType = method.getChild(0);
-            JmmNode returnExpr = method.getChild(method.getNumChildren() - 1);
+        if (!Objects.equals(currentMethod, "main")) {
+            JmmNode returnType = method.getObject("returnType", JmmNode.class);
+            JmmNode returnExpr = method.getObject("returnExpr", JmmNode.class);
             Type returnExprType = getExprType(returnExpr, table);
-            if(Objects.equals(returnExprType, null) && Objects.equals(returnExpr.getKind(), "MethodCall"))
+
+            if (Objects.equals(returnExprType, null) && Objects.equals(returnExpr.getKind(), "MethodCall"))
                 return null;
-            if (!Objects.equals(getTypeFromGrammarType(returnType), returnExprType)){
+
+            var t = getTypeFromGrammarType(returnType);
+            if (!Objects.equals(getTypeFromGrammarType(returnType), returnExprType)) {
                 var message = "Incompatible return type";
                 addReport(Report.newError(
                         Stage.SEMANTIC,

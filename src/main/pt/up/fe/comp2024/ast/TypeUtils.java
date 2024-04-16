@@ -60,7 +60,7 @@ public class TypeUtils {
                 case PRIORITY_EXPR -> getExprType(expr.getChild(0), table);
                 case UNARY_EXPR -> getUnaryExprType(expr);
                 case BINARY_EXPR -> getBinExprType(expr);
-                case LIST_ACCESS -> getVarExprType(expr.getChild(0), table);
+                case LIST_ACCESS -> new Type(getVarExprType(expr.getChild(0), table).getName(), false); //Same type as array but the access itself is not an array
                 case LENGTH_CALL -> new Type(INT_TYPE_NAME, false);
                 case METHOD_CALL -> table.getReturnType(expr.get("name"));
                 case NEW_OBJECT -> annotateType(new Type(expr.get("name"), false), table);
@@ -121,12 +121,10 @@ public class TypeUtils {
     public static Type getVarExprType(JmmNode varRefExpr, SymbolTable table) {
         //Node was annotated during semantic analysis
         if (varRefExpr.hasAttribute("type")) {
-            System.out.println("1");
             return varRefExpr.getObject("type", Type.class);
         }
         //Node was not annotated
         else {
-            System.out.println("2");
             var varRefName = varRefExpr.get("name");
 
             Optional<JmmNode> currentMethodNode = varRefExpr.getAncestor(METHOD);
