@@ -16,7 +16,7 @@ import java.util.Objects;
 import static pt.up.fe.comp2024.ast.TypeUtils.getExprType;
 import static pt.up.fe.comp2024.ast.TypeUtils.getTypeFromGrammarType;
 
-public class MethodReturnType extends AnalysisVisitor {
+public class MethodDecl extends AnalysisVisitor {
 
     @Override
     public void buildVisitor() {

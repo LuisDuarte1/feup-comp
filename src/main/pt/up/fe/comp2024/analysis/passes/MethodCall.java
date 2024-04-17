@@ -46,6 +46,18 @@ public class MethodCall extends AnalysisVisitor {
             boolean hasVarargs = lastParamType.hasAttribute("isVarArgs") && lastParamType.getObject("isVarArgs", Boolean.class);
             var numNonVarargsParams = hasVarargs ? params.size() - 1 : params.size();
 
+            if (!hasVarargs && memberCall.getNumChildren() - 1 != numNonVarargsParams) {
+                var message = String.format("Passing wrong number of arguments to method call '%s()'", memberCall.get("name"));
+
+                addReport(Report.newError(
+                        Stage.SEMANTIC,
+                        NodeUtils.getLine(memberCall),
+                        NodeUtils.getColumn(memberCall),
+                        message,
+                        null)
+                );
+            }
+
             boolean flag = true;
 
             for (int i = 0; i < numNonVarargsParams; i++)
@@ -72,6 +84,7 @@ public class MethodCall extends AnalysisVisitor {
                     Type paramType = TypeUtils.getExprType(memberCall.getChild(j + 1), table);
                     flag &= paramType.equals(new Type("int", false));
                 }
+
                 if (flag) return null;
                 else {
                     var message = String.format("Passing argument of wrong type to argument of method call '%s()'", memberCall.get("name"));
@@ -86,14 +99,14 @@ public class MethodCall extends AnalysisVisitor {
                 }
             }
 
-            if(flag){
+            if (flag) {
                 return null;
             }
         }
 
         if (table.getImports().contains(memberCall.get("name"))
                 || table.getImports().contains(objectType.getName())
-                || (table.getClassName().equals(objectType.getName()) && table.getImports().contains(table.getSuper()))){ //Current class extends imported class
+                || (table.getClassName().equals(objectType.getName()) && table.getImports().contains(table.getSuper()))) { //Current class extends imported class
             return null;
         }
 

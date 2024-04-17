@@ -1,0 +1,12 @@
+class CallToMethodWrongNumParams {
+
+    public int foo() {
+        int a;
+        a = this.foo(10, 20, 30);
+        return a;
+    }
+
+    public int foo(int a, int b) {
+        return a;
+    }
+}

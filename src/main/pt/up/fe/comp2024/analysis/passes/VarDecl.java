@@ -33,6 +33,20 @@ public class Varargs extends AnalysisVisitor {
     }
 
     private Void visitVarDecl(JmmNode varDecl, SymbolTable table) {
+        Optional<JmmNode> currentMethodNode = varDecl.getAncestor(METHOD);
+        if (currentMethodNode.isPresent()) {
+            String currentMethod = currentMethodNode.get().get("name");
+
+            // Var is a declared variable, return
+            Optional<Symbol> variable = table.getLocalVariables(currentMethod).stream().filter(varDecl -> varDecl.getName().equals(varRefName)).findFirst();
+            if (variable.isPresent()) {
+
+                return null;
+            }
+        }
+
+
+
         Type varType = getTypeFromGrammarType(varDecl.getChild(0));
         if (varType.hasAttribute("isVarArgs") && varType.getObject("isVarArgs", Boolean.class)) {
             // Create error report
