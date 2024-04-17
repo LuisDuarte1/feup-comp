@@ -301,8 +301,7 @@ public class JasminGenerator {
 
             if(inst instanceof CallInstruction){
                 var funcReturnType = ((CallInstruction) inst).getReturnType().getTypeOfElement();
-                var callInstructionType = ((CallInstruction) inst).getInvocationType();
-                if(!method.isConstructMethod() && (funcReturnType == ElementType.VOID && callInstructionType == CallType.invokespecial)){
+                if(!method.isConstructMethod() && !(funcReturnType == ElementType.VOID)){
                     code.append("pop").append(NL);
                 }
             }
