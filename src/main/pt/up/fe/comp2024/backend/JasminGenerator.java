@@ -74,7 +74,11 @@ public class JasminGenerator {
         var code = new StringBuilder();
         switch (callInstruction.getInvocationType()){
             case NEW -> {
-                code.append(String.format("new %s", ((ClassType) callInstruction.getReturnType()).getName())).append(NL);
+                var classType = (ClassType) callInstruction.getReturnType();
+                var className = currentMethod.getOllirClass().getImports().stream()
+                        .filter(((val) -> val.endsWith(classType.getName())))
+                        .findFirst().orElse(classType.getName()).replace(".", "/");
+                code.append(String.format("new %s", (classType.getName()))).append(NL);
                 code.append("dup").append(NL);
             }
             case invokespecial -> {
@@ -307,8 +311,9 @@ public class JasminGenerator {
 
             if(inst instanceof CallInstruction){
                 var funcReturnType = ((CallInstruction) inst).getReturnType().getTypeOfElement();
-                if(!method.isConstructMethod() && !(funcReturnType == ElementType.VOID)){
-                    code.append("pop").append(NL);
+                var callType = ((CallInstruction) inst).getInvocationType();
+                if(!method.isConstructMethod() && (!(funcReturnType == ElementType.VOID) || callType == CallType.invokespecial)){
+                    code.append(TAB).append("pop").append(NL);
                 }
             }
 
@@ -407,7 +412,7 @@ public class JasminGenerator {
                 code.append(generators.apply(returnInst.getOperand()));
                 code.append("ireturn");
             }
-            case CLASS -> {
+            case CLASS, OBJECTREF -> {
                 code.append(generators.apply(returnInst.getOperand()));
                 code.append("areturn");
             }
