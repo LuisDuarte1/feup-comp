@@ -98,6 +98,7 @@ public class SemanticAnalysisTest {
     @Test
     public void assignIntToBool() {
         var result = TestUtils.analyse(SpecsIo.getResource("pt/up/fe/comp/cp2/semanticanalysis/AssignIntToBool.jmm"));
+        System.out.println(result.getReports());
         TestUtils.mustFail(result);
     }
 

@@ -28,7 +28,7 @@ public class AssignmentType extends AnalysisVisitor {
         Type typeExpr1 = getExprType(expr1, table);
         Type typeExpr2 = getExprType(expr2, table);
 
-        if(!VAR_REF_EXPR.check(expr1) && !LIST_ACCESS.check(expr1)){
+        if(!VAR_REF_EXPR.check(expr1) && !LIST_ACCESS.check(expr1) && !ID.check(expr1) && !THIS_LITERAL.check(expr1)){
             // Create error report
             var message = String.format("Assignment left hand operand must be a valid ID.");
             addReport(Report.newError(
