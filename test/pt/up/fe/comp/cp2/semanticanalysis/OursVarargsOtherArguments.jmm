@@ -1,0 +1,12 @@
+class VarargsOtherArguments {
+
+    public int foo() {
+        int a;
+        a = this.varargs(true, 10, 20, 30);
+        return a;
+    }
+
+    public int varargs(boolean b, int... a) {
+        return a[0];
+    }
+}

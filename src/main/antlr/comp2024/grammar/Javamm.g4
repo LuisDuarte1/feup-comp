@@ -105,9 +105,6 @@ stmt
 expr
     : LPAREN expr RPAREN #PriorityExpr
     | op= NOT expr #UnaryExpr
-    | name=ID LPAREN
-        (expr (COMMA expr)*)?
-        RPAREN #MethodCall
     | object=expr DOT name=ID LPAREN
         (expr (COMMA expr)*)?
         RPAREN #MethodCall

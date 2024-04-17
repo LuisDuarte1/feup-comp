@@ -70,12 +70,10 @@ public class TypeUtils {
                     if (localType != null) {
                         yield localType;
                     } else {
-                        if (expr.hasAttribute("object")) {
-                            var object = expr.getObject("object", JmmNode.class);
-                            if (table.getImports().contains(getExprType(object, table).getName())) //Class of the method is imported
-                            {
-                                yield new Type("imported", false);
-                            }
+                        var object = expr.getObject("object", JmmNode.class);
+                        if (table.getImports().contains(getExprType(object, table).getName())) //Class of the method is imported
+                        {
+                            yield new Type("imported", false);
                         }
                     }
                     throw new UnsupportedOperationException("Can't compute type for expression kind '" + kind + "'");
