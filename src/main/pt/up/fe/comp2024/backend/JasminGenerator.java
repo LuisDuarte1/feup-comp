@@ -83,7 +83,10 @@ public class JasminGenerator {
                                 .map(generators::apply)
                                 .reduce("", (a , b) -> {return a + NL + b;})
                 ).append(NL);
-                var className = currentMethod.getOllirClass().getClassName();
+                final ClassType classType = (ClassType) ((Operand) callInstruction.getCaller()).getType();
+                var className = currentMethod.getOllirClass().getImports().stream()
+                        .filter(((val) -> val.endsWith(classType.getName())))
+                        .findFirst().orElse(classType.getName()).replace(".", "/");
                 var methodName = ((LiteralElement) callInstruction.getMethodName()).getLiteral().replace("\"", "");
 
                 var paramsType = callInstruction.getArguments().stream().map(Element::getType).map(this::getJasminTypeOfElement)
@@ -100,7 +103,10 @@ public class JasminGenerator {
                                 .reduce("", (a , b) -> {return a + NL + b;})
                 ).append(NL);
 
-                var className = ((Operand) callInstruction.getCaller()).getName();
+                var className = currentMethod.getOllirClass().getImports().stream()
+                        .filter(((val) -> val.endsWith(((Operand) callInstruction.getCaller()).getName())))
+                        .findFirst().orElse(((Operand) callInstruction.getCaller()).getName())
+                        .replace(".", "/");
                 var methodName = ((LiteralElement) callInstruction.getMethodName()).getLiteral().replace("\"", "");
                 var paramsType = callInstruction.getArguments().stream().map(Element::getType).map(this::getJasminTypeOfElement)
                         .reduce("", (subtotal, element) -> subtotal + element);
@@ -115,7 +121,10 @@ public class JasminGenerator {
                     code.append("aload_0").append(NL);
                 }
                 else code.append(String.format("aload %d", currentMethod.getVarTable().get(className).getVirtualReg()));
-                className = ((ClassType) callInstruction.getCaller().getType()).getName();
+                className = currentMethod.getOllirClass().getImports().stream()
+                        .filter((val) -> val.endsWith(((ClassType) callInstruction.getCaller().getType()).getName()))
+                        .findFirst().orElse(((ClassType) callInstruction.getCaller().getType()).getName())
+                        .replace(".", "/");
                 code.append(
                         callInstruction.getArguments().stream()
                                 .map(generators::apply)
@@ -138,6 +147,11 @@ public class JasminGenerator {
         var code = new StringBuilder();
 
         var className = currentMethod.getOllirClass().getClassName();
+        String finalClassName = className;
+        className = currentMethod.getOllirClass().getImports().stream()
+                .filter((val) -> val.endsWith(finalClassName))
+                .findFirst().orElse(finalClassName)
+                .replace(".", "/");
         if (!Objects.equals(((Operand) getFieldInstruction.getOperands().get(0)).getName(), "this")){
             code.append(String.format("aload %s",
                     currentMethod.getVarTable().get(
@@ -160,6 +174,11 @@ public class JasminGenerator {
         var code = new StringBuilder();
 
         var className = currentMethod.getOllirClass().getClassName();
+        String finalClassName = className;
+        className = currentMethod.getOllirClass().getImports().stream()
+                .filter((val) -> val.endsWith(finalClassName))
+                .findFirst().orElse(finalClassName)
+                .replace(".", "/");
         if (!Objects.equals(((Operand) putFieldInstruction.getOperands().get(0)).getName(), "this")){
             code.append(String.format("aload %s",
                     currentMethod.getVarTable().get(
@@ -236,7 +255,10 @@ public class JasminGenerator {
                     "[".repeat(((ArrayType) element).getNumDimensions())
                             + getJasminTypeOfElement(((ArrayType) element).getElementType());
             case VOID -> "V";
-            case CLASS,OBJECTREF -> String.format("L%s;", "L");
+            case CLASS,OBJECTREF -> String.format("L%s;", currentMethod.getOllirClass().getImports().stream()
+                    .filter((val) -> val.endsWith(((ClassType) element).getName()))
+                    .findFirst().orElse(((ClassType) element).getName())
+                    .replace(".", "/"));
             default -> throw new RuntimeException(
                     String.format("Jasmin type not handled: %s", element.getTypeOfElement().name())
             );

@@ -1,0 +1,14 @@
+import java.time.Instant;
+PrazerFactory extends Object {
+
+
+.method public static main(args.array.String).V {
+tmp0.Instant :=.Instant invokestatic(Instant, "now").Instant;
+a.Instant :=.Instant tmp0.Instant;
+ret.V ;
+}
+
+.construct PrazerFactory().V {
+invokespecial(this, "").V;
+}
+}

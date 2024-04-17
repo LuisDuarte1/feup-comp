@@ -34,6 +34,11 @@ public class JasminTest {
     }
 
     @Test
+    public void InstantTest(){
+        testOllirToJasmin("pt/up/fe/comp/cp2/jasmin/InstantTest.ollir");
+    }
+
+    @Test
     public void ollirToJasminInvoke() {
         testOllirToJasmin("pt/up/fe/comp/cp2/jasmin/OllirToJasminInvoke.ollir");
     }
@@ -42,6 +47,7 @@ public class JasminTest {
     public void ollirToJasminFields() {
         testOllirToJasmin("pt/up/fe/comp/cp2/jasmin/OllirToJasminFields.ollir");
     }
+
 
     public static void testOllirToJasmin(String resource, String expectedOutput) {
         JasminResult result = null;
