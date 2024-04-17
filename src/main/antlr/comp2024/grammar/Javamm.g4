@@ -37,6 +37,7 @@ IMPORT : 'import' ;
 STRING : 'String' ;
 MAIN : 'main';
 LENGTH : 'length';
+THIS : 'this';
 
 INTEGER : '0' | [1-9][0-9]* ;
 ID : (LETTER | UNDERSCR | DOLLAR)(LETTER | DIGIT | UNDERSCR | DOLLAR)*;
@@ -54,11 +55,11 @@ program
     ;
 
 importDecl
-    : IMPORT modules+=(ID | LENGTH | MAIN) (DOT modules+=(ID | LENGTH | MAIN))* SEMI
+    : IMPORT modules+=(ID | LENGTH | MAIN | THIS) (DOT modules+=(ID | LENGTH | MAIN | THIS))* SEMI
     ;
 
 classDecl locals[boolean hasParent=false]
-    : CLASS name=(ID | LENGTH | MAIN) ('extends' {$hasParent = true;} parent=(ID | LENGTH | MAIN))?
+    : CLASS name=(ID | LENGTH | MAIN | THIS) ('extends' {$hasParent = true;} parent=(ID | LENGTH | MAIN | THIS))?
         LCURLY
         varDecl*
         methodDecl*
@@ -75,22 +76,22 @@ type
     | BOOL #BoolType
     | STRING #StrType
     | INT #IntType
-    | name= (ID | LENGTH | MAIN)  #ObjectType
+    | name= (ID | LENGTH | MAIN | THIS)  #ObjectType
     ;
 
 methodDecl locals[boolean isPublic=false] //Guarantees that methodDecl always has an isPublic value
     : (PUBLIC {$isPublic=true;})? 'static' returnType='void' name=MAIN
-        LPAREN STRING LBRACKET RBRACKET (ID | LENGTH | MAIN) RPAREN
+        LPAREN STRING LBRACKET RBRACKET (ID | LENGTH | MAIN | THIS) RPAREN
         LCURLY varDecl* stmt* RCURLY #MainMethod
     | (PUBLIC {$isPublic=true;})?
-        returnType=type name=(ID | LENGTH | MAIN)
+        returnType=type name=(ID | LENGTH | MAIN | THIS)
         LPAREN (param (COMMA param)*)? RPAREN
         LCURLY varDecl* stmt* RETURN returnExpr=expr SEMI RCURLY #Method
 
     ;
 
 param
-    : typename=type name=(ID | LENGTH | MAIN)
+    : typename=type name=(ID | LENGTH | MAIN | THIS)
     ;
 
 stmt
@@ -105,7 +106,7 @@ stmt
 expr
     : LPAREN expr RPAREN #PriorityExpr
     | op= NOT expr #UnaryExpr
-    | object=expr DOT name=(ID | LENGTH | MAIN) LPAREN
+    | object=expr DOT name=(ID | LENGTH | MAIN | THIS) LPAREN
         (expr (COMMA expr)*)?
         RPAREN #MethodCall
     | expr LBRACKET expr RBRACKET #ListAccess
@@ -114,11 +115,11 @@ expr
     | expr op=(ADD | SUB) expr #BinaryExpr //
     | expr op= LESS expr #BinaryExpr
     | expr op= LOGICAL_AND expr #BinaryExpr
-    | NEW name=(ID | LENGTH | MAIN) LPAREN (expr (COMMA expr)*)? RPAREN #NewObject
+    | NEW name=(ID | LENGTH | MAIN | THIS) LPAREN (expr (COMMA expr)*)? RPAREN #NewObject
     | NEW INT LBRACKET expr RBRACKET #NewArray
     | LBRACKET (expr (COMMA expr)*)? RBRACKET #Array
     | value=INTEGER #IntegerLiteral//
     | (TRUE | FALSE) #BooleanLiteral
     | 'this' #ThisLiteral
-    | name=(ID | LENGTH | MAIN) #VarRefExpr //
+    | name=(ID | LENGTH | MAIN | THIS) #VarRefExpr //
     ;

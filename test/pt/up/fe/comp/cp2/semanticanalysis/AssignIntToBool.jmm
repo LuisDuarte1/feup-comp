@@ -7,7 +7,7 @@ class AssignIntToBool {
     public boolean foo() {
         boolean a;
 
-        a = 10;
+        a[0] = 10;
 
         return a;
     }
