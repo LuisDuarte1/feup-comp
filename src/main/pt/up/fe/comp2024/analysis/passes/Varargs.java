@@ -9,10 +9,7 @@ import pt.up.fe.comp.jmm.report.Stage;
 import pt.up.fe.comp2024.analysis.AnalysisVisitor;
 import pt.up.fe.comp2024.ast.Kind;
 import pt.up.fe.comp2024.ast.NodeUtils;
-import pt.up.fe.specs.util.SpecsCheck;
-import pt.up.fe.comp2024.ast.TypeUtils;
 
-import java.util.Objects;
 import java.util.Optional;
 
 import static pt.up.fe.comp2024.ast.Kind.METHOD;
@@ -32,29 +29,29 @@ public class Varargs extends AnalysisVisitor {
         addVisit(Kind.VAR_DECL, this::visitVarDecl);
     }
 
-    private Void visitVarDecl(JmmNode varDecl, SymbolTable table) {
-        Optional<JmmNode> currentMethodNode = varDecl.getAncestor(METHOD);
-        if (currentMethodNode.isPresent()) {
-            String currentMethod = currentMethodNode.get().get("name");
+    private Void visitVarDecl(JmmNode varargs, SymbolTable table) {
+//        Optional<JmmNode> currentMethodNode = varargs.getAncestor(METHOD);
+//        if (currentMethodNode.isPresent()) {
+//            String currentMethod = currentMethodNode.get().get("name");
+//
+//            // Var is a declared variable, return
+//            Optional<Symbol> variable = table.getLocalVariables(currentMethod).stream().filter(varDecl -> varDecl.getName().equals(varRefName)).findFirst();
+//            if (variable.isPresent()) {
+//
+//                return null;
+//            }
+//        }
 
-            // Var is a declared variable, return
-            Optional<Symbol> variable = table.getLocalVariables(currentMethod).stream().filter(varDecl -> varDecl.getName().equals(varRefName)).findFirst();
-            if (variable.isPresent()) {
-
-                return null;
-            }
-        }
 
 
-
-        Type varType = getTypeFromGrammarType(varDecl.getChild(0));
+        Type varType = getTypeFromGrammarType(varargs.getChild(0));
         if (varType.hasAttribute("isVarArgs") && varType.getObject("isVarArgs", Boolean.class)) {
             // Create error report
             var message = String.format("Variable declarations cannot be vararg");
             addReport(Report.newError(
                     Stage.SEMANTIC,
-                    NodeUtils.getLine(varDecl),
-                    NodeUtils.getColumn(varDecl),
+                    NodeUtils.getLine(varargs),
+                    NodeUtils.getColumn(varargs),
                     message,
                     null)
             );
