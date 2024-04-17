@@ -86,7 +86,9 @@ public class MethodCall extends AnalysisVisitor {
                 }
             }
 
-
+            if(flag){
+                return null;
+            }
         }
 
         if (table.getImports().contains(memberCall.get("name"))
