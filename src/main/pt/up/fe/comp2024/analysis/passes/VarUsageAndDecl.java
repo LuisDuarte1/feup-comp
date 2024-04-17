@@ -31,17 +31,24 @@ public class VarUsageAndDecl extends AnalysisVisitor {
     }
 
     private Void visitVarDecl(JmmNode varDecl, SymbolTable table) {
-//        Optional<JmmNode> currentMethodNode = varargs.getAncestor(METHOD);
-//        if (currentMethodNode.isPresent()) {
-//            String currentMethod = currentMethodNode.get().get("name");
-//
-//            // Var is a declared variable, return
-//            Optional<Symbol> variable = table.getLocalVariables(currentMethod).stream().filter(varDecl -> varDecl.getName().equals(varRefName)).findFirst();
-//            if (variable.isPresent()) {
-//
-//                return null;
-//            }
-//        }
+
+        Optional<JmmNode> currentMethodNode = varDecl.getAncestor(METHOD);
+        if (currentMethodNode.isPresent()) {
+            String currentMethod = currentMethodNode.get().get("name");
+
+            long localVariables = table.getLocalVariables(currentMethod).stream().filter(var -> var.getName().equals(varDecl.get("name"))).count();
+            if (localVariables > 1) {
+                var message = String.format("Variable declarations cannot be duplicated");
+                addReport(Report.newError(
+                        Stage.SEMANTIC,
+                        NodeUtils.getLine(varDecl),
+                        NodeUtils.getColumn(varDecl),
+                        message,
+                        null)
+                );
+
+            }
+        }
 
 
         Type varType = getTypeFromGrammarType(varDecl.getChild(0));
@@ -86,6 +93,3 @@ public class VarUsageAndDecl extends AnalysisVisitor {
 
     }
 }
-
-
-
