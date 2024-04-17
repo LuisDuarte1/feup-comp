@@ -61,7 +61,12 @@ public class TypeUtils {
                 case UNARY_EXPR -> getUnaryExprType(expr);
                 case BINARY_EXPR -> getBinExprType(expr);
                 case LIST_ACCESS -> {
-                    var arrayType = getVarExprType(expr.getChild(0), table);
+                    var array = expr.getChild(0);
+                    Type arrayType;
+                    if(ARRAY.check(array)){
+                        arrayType = getExprType(array.getChild(0), table);
+                    } //If it's an in place array
+                    else arrayType = getVarExprType(expr.getChild(0), table);
                     yield new Type(arrayType.getName(), false); //Same type as array but the access itself is not an array
                 }
                 case LENGTH_CALL -> new Type(INT_TYPE_NAME, false);
