@@ -43,6 +43,7 @@ public class MethodDecl extends AnalysisVisitor {
 
             var lastParameter = parameters.get(parameters.size() - 1);
 
+            //Return a varargs param
             if (lastParameter.getType().hasAttribute("isVarArgs") && lastParameter.getType().getObject("isVarArgs", Boolean.class)) {
                 JmmNode returnExpr = method.getObject("returnExpr", JmmNode.class);
 
@@ -57,9 +58,23 @@ public class MethodDecl extends AnalysisVisitor {
                                 null)
                         );
                     }
-                } else return null;
+                }
             }
+        }
+        if (method.getObject("returnType") instanceof JmmNode) { //Declare return type as varargs
+            JmmNode declaredReturnNode = method.getObject("returnType", JmmNode.class);
+            Type declaredReturnType = getTypeFromGrammarType(declaredReturnNode);
 
+            if (declaredReturnType.hasAttribute("isVarArgs") && declaredReturnType.getObject("isVarArgs", Boolean.class)) {
+                var message = "Method returns cannot be vararg";
+                addReport(Report.newError(
+                        Stage.SEMANTIC,
+                        NodeUtils.getLine(method),
+                        NodeUtils.getColumn(method),
+                        message,
+                        null)
+                );
+            }
         }
 
         if (!Objects.equals(currentMethod, "main")) {
@@ -71,7 +86,6 @@ public class MethodDecl extends AnalysisVisitor {
                 return null;
 
             if (!Objects.equals(returnExprType.getName(), "imported") && !Objects.equals(getTypeFromGrammarType(returnType), returnExprType)) {
-                var t = getTypeFromGrammarType(returnType);
                 var message = "Incompatible return type";
                 addReport(Report.newError(
                         Stage.SEMANTIC,

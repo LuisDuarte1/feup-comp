@@ -1,7 +1,5 @@
 class VarargsReturn {
-
-    public int foo(int... a) {
-        return a;
+    public int... foo() {
+        return [1, 2, 3];
     }
-
 }
