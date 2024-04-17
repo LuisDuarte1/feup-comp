@@ -18,6 +18,10 @@ public class TypeUtils {
     private static final String BOOL_TYPE_NAME = "boolean";
     private static final String STR_TYPE_NAME = "String";
 
+    public static final String PARAM = "param";
+    public static final String FIELD = "field";
+    public static final String LOCAL = "local";
+    public static final String IMPORTS = "imports";
 
     public static String getIntTypeName() {
         return INT_TYPE_NAME;
@@ -63,7 +67,7 @@ public class TypeUtils {
                 case LIST_ACCESS -> {
                     var array = expr.getChild(0);
                     Type arrayType;
-                    if(ARRAY.check(array)){
+                    if (ARRAY.check(array)) {
                         arrayType = getExprType(array.getChild(0), table);
                     } //If it's an in place array
                     else arrayType = getVarExprType(expr.getChild(0), table);
@@ -152,6 +156,7 @@ public class TypeUtils {
             var varRefName = varRefExpr.get("name");
 
             Optional<JmmNode> currentMethodNode = varRefExpr.getAncestor(METHOD);
+            if (currentMethodNode.isEmpty()) currentMethodNode = varRefExpr.getAncestor(MAIN_METHOD);
             Optional<JmmNode> currentClassNode = varRefExpr.getAncestor(CLASS_DECL);
 
             if (currentMethodNode.isPresent()) {
@@ -181,6 +186,41 @@ public class TypeUtils {
             }
             throw new RuntimeException("Could not access " + varRefExpr + " parent method or class");
         }
+    }
+
+    public static String getVarExprOrigin(JmmNode varRefExpr, SymbolTable table) {
+        var varRefName = varRefExpr.get("name");
+
+        Optional<JmmNode> currentMethodNode = varRefExpr.getAncestor(METHOD);
+        if (currentMethodNode.isEmpty()) currentMethodNode = varRefExpr.getAncestor(MAIN_METHOD);
+        Optional<JmmNode> currentClassNode = varRefExpr.getAncestor(CLASS_DECL);
+
+        if (currentMethodNode.isPresent()) {
+            String currentMethod = currentMethodNode.get().get("name");
+
+            // Var is a parameter
+            Optional<Symbol> parameter = table.getParameters(currentMethod).stream().filter(param -> param.getName().equals(varRefName)).findFirst();
+            if (parameter.isPresent()) {
+                return PARAM;
+            }
+
+            // Var is a declared variable
+            Optional<Symbol> variable = table.getLocalVariables(currentMethod).stream().filter(varDecl -> varDecl.getName().equals(varRefName)).findFirst();
+            if (variable.isPresent()) {
+                return LOCAL;
+            }
+        }
+        if (currentClassNode.isPresent()) {
+            // Var is a field
+            Optional<Symbol> field = table.getFields().stream().filter(param -> param.getName().equals(varRefName)).findFirst();
+            if (field.isPresent()) {
+                return FIELD;
+            }
+        }
+
+        if(table.getImports().contains(varRefName)) return IMPORTS;
+
+        throw new RuntimeException("Could not access " + varRefExpr + " parent method or class");
     }
 
 

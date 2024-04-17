@@ -160,6 +160,14 @@ public class SemanticAnalysisTest {
     }
 
     @Test
+    public void callToMethodWrongNumParams() {
+        var result = TestUtils
+                .analyse(SpecsIo.getResource("pt/up/fe/comp/cp2/semanticanalysis/OursCallToMethodWrongNumParams.jmm"));
+        TestUtils.mustFail(result);
+        System.out.println(result.getReports());
+    }
+
+    @Test
     public void incompatibleArguments() {
         var result = TestUtils
                 .analyse(SpecsIo.getResource("pt/up/fe/comp/cp2/semanticanalysis/IncompatibleArguments.jmm"));
@@ -276,6 +284,14 @@ public class SemanticAnalysisTest {
     public void thisInMain() {
         var result = TestUtils
                 .analyse(SpecsIo.getResource("pt/up/fe/comp/cp2/semanticanalysis/OursThisInMain.jmm"));
+        TestUtils.mustFail(result);
+        System.out.println(result.getReports());
+    }
+
+    @Test
+    public void fieldInStatic() {
+        var result = TestUtils
+                .analyse(SpecsIo.getResource("pt/up/fe/comp/cp2/semanticanalysis/OursFieldInStatic.jmm"));
         TestUtils.mustFail(result);
         System.out.println(result.getReports());
     }
