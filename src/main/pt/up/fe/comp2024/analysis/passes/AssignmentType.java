@@ -28,7 +28,7 @@ public class AssignmentType extends AnalysisVisitor {
         Type typeExpr1 = getExprType(expr1, table);
         Type typeExpr2 = getExprType(expr2, table);
 
-        if(!VAR_REF_EXPR.check(expr1)){
+        /*if(!VAR_REF_EXPR.check(expr1)){
             // Create error report
             var message = String.format("Assignment left hand operand must be a valid ID.");
             addReport(Report.newError(
@@ -39,7 +39,7 @@ public class AssignmentType extends AnalysisVisitor {
                     null)
             );
         }
-        else if (!areTypesAssignable(typeExpr2, typeExpr1)) {
+        else*/ if (!areTypesAssignable(typeExpr2, typeExpr1)) {
             String array1 = typeExpr1.isArray() ? " array" : "";
             String array2 = typeExpr2.isArray() ? " array" : "";
 
