@@ -16,8 +16,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 import static pt.up.fe.comp2024.ast.Kind.METHOD;
-import static pt.up.fe.comp2024.ast.TypeUtils.getExprType;
-import static pt.up.fe.comp2024.ast.TypeUtils.getVarExprType;
+import static pt.up.fe.comp2024.ast.TypeUtils.*;
 
 /**
  * Checks if the type of the expression in a return statement is compatible with the method return type.
@@ -34,7 +33,7 @@ public class Varargs extends AnalysisVisitor {
     }
 
     private Void visitVarDecl(JmmNode varDecl, SymbolTable table) {
-        JmmNode varType = varDecl.getChild(0);
+        Type varType = getTypeFromGrammarType(varDecl.getChild(0));
         if (varType.hasAttribute("isVarArgs") && varType.getObject("isVarArgs", Boolean.class)) {
             // Create error report
             var message = String.format("Variable declarations cannot be vararg");

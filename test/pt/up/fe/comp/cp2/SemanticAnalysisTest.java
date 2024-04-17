@@ -252,6 +252,13 @@ public class SemanticAnalysisTest {
     }
 
     @Test
+    public void arrayInitAccess() {
+        var result = TestUtils
+                .analyse(SpecsIo.getResource("pt/up/fe/comp/cp2/semanticanalysis/OursArrayInitAccess.jmm"));
+        TestUtils.noErrors(result);
+    }
+
+    @Test
     public void thisInMethod() {
         var result = TestUtils
                 .analyse(SpecsIo.getResource("pt/up/fe/comp/cp2/semanticanalysis/OursThisInMethod.jmm"));
