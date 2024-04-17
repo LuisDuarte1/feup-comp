@@ -56,6 +56,7 @@ public class MethodCall extends AnalysisVisitor {
                         message,
                         null)
                 );
+                return null; //If this fails other verifications are not possible
             }
 
             boolean flag = true;
