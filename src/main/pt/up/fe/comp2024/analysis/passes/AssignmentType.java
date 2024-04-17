@@ -11,7 +11,7 @@ import pt.up.fe.comp2024.ast.NodeUtils;
 
 import java.util.Objects;
 
-import static pt.up.fe.comp2024.ast.Kind.ID;
+import static pt.up.fe.comp2024.ast.Kind.VAR_REF_EXPR;
 import static pt.up.fe.comp2024.ast.TypeUtils.*;
 
 public class AssignmentType extends AnalysisVisitor {
@@ -28,7 +28,7 @@ public class AssignmentType extends AnalysisVisitor {
         Type typeExpr1 = getExprType(expr1, table);
         Type typeExpr2 = getExprType(expr2, table);
 
-        if(!ID.check(expr1)){
+        if(!VAR_REF_EXPR.check(expr1)){
             // Create error report
             var message = String.format("Assignment left hand operand must be a valid ID.");
             addReport(Report.newError(
