@@ -211,7 +211,13 @@ public class JasminGenerator {
         code.append(".class ").append(className).append(NL).append(NL);
 
         // TODO: Hardcoded to Object, needs to be expanded
-        code.append(".super java/lang/Object").append(NL);
+        var superClassName = !(Objects.equals(classUnit.getSuperClass(), "Object") || classUnit.getSuperClass() == null) ?
+                classUnit.getImports().stream()
+                        .filter((val) -> val.endsWith(classUnit.getSuperClass()))
+                        .findFirst().orElse(classUnit.getSuperClass())
+                        .replace(".", "/")
+                : "java/lang/Object";
+        code.append(String.format(".super %s", superClassName)).append(NL);
 
         ollirResult.getOllirClass().getFields()
                 .stream().map((val) -> String.format(".field %s %s %s\n",
@@ -222,14 +228,14 @@ public class JasminGenerator {
                 .toList().forEach(code::append);
 
         // generate a single constructor method
-        var defaultConstructor = """
+        var defaultConstructor = String.format("""
                 ;default constructor
                 .method public <init>()V
                     aload_0
-                    invokespecial java/lang/Object/<init>()V
+                    invokespecial %s/<init>()V
                     return
                 .end method
-                """;
+                """, superClassName);
         code.append(defaultConstructor);
 
         // generate code for all other methods
