@@ -207,6 +207,28 @@ public class SemanticAnalysisTest {
     }
 
     @Test
+    public void varargsArray() {
+        var result = TestUtils
+                .analyse(SpecsIo.getResource("pt/up/fe/comp/cp2/semanticanalysis/OursVarargsArray.jmm"));
+        TestUtils.noErrors(result);
+    }
+
+    @Test
+    public void varargsMultipleArrays() {
+        var result = TestUtils
+                .analyse(SpecsIo.getResource("pt/up/fe/comp/cp2/semanticanalysis/OursVarargsMultipleArrays.jmm"));
+        TestUtils.mustFail(result);
+        System.out.println(result.getReports());
+    }
+
+    @Test
+    public void varargsOtherArguments() {
+        var result = TestUtils
+                .analyse(SpecsIo.getResource("pt/up/fe/comp/cp2/semanticanalysis/OursVarargsOtherArguments.jmm"));
+        TestUtils.noErrors(result);
+    }
+
+    @Test
     public void arrayInit() {
         var result = TestUtils
                 .analyse(SpecsIo.getResource("pt/up/fe/comp/cp2/semanticanalysis/ArrayInit.jmm"));

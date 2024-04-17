@@ -1,0 +1,14 @@
+class VarargsMultipleArrays {
+
+    public int foo() {
+        int a;
+        int[] b;
+        int[] c;
+        a = this.varargs(b, c);
+        return a;
+    }
+
+    public int varargs(int... a) {
+        return a[0];
+    }
+}
