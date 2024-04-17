@@ -108,7 +108,7 @@ expr
     | name=ID LPAREN
         (expr (COMMA expr)*)?
         RPAREN #MethodCall
-    | expr DOT name=ID LPAREN
+    | object=expr DOT name=ID LPAREN
         (expr (COMMA expr)*)?
         RPAREN #MethodCall
     | expr LBRACKET expr RBRACKET #ListAccess

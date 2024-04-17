@@ -10,6 +10,7 @@ import pt.up.fe.specs.util.utilities.StringLines;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -48,7 +49,11 @@ public class JasminGenerator {
         generators.put(Operand.class, this::generateOperand);
         generators.put(BinaryOpInstruction.class, this::generateBinaryOp);
         generators.put(ReturnInstruction.class, this::generateReturn);
+        generators.put(PutFieldInstruction.class, this::generatePutField);
+        generators.put(GetFieldInstruction.class, this::generateGetField);
+        generators.put(CallInstruction.class, this::generateCallInstruction);
     }
+
 
     public List<Report> getReports() {
         return reports;
@@ -64,6 +69,76 @@ public class JasminGenerator {
         return code;
     }
 
+    private String generateCallInstruction(CallInstruction callInstruction){
+        var code = new StringBuilder();
+        switch (callInstruction.getInvocationType()){
+            case NEW -> {
+                code.append(String.format("new %s", ((ClassType) callInstruction.getReturnType()).getName())).append(NL);
+            }
+            case invokespecial -> {
+                code.append("dup").append(NL);
+                code.append(
+                        callInstruction.getArguments().stream()
+                                .map(generators::apply)
+                                .reduce("", (a , b) -> {return a + NL + b;})
+                ).append(NL);
+                var className = currentMethod.getOllirClass().getClassName();
+                var methodName = ((LiteralElement) callInstruction.getMethodName()).getLiteral().replace("\"", "");
+
+                var paramsType = callInstruction.getArguments().stream().map(Element::getType).map(this::getJasminTypeOfElement)
+                        .reduce("", (subtotal, element) -> subtotal + element);
+                var returnType = getJasminTypeOfElement(callInstruction.getReturnType());
+
+                code.append(String.format("invokespecial %s",
+                        String.format("%s(%s)%s", className+"/"+methodName,paramsType, returnType))).append(NL);
+                code.append("astore_1").append(NL);
+            }
+        }
+        return code.toString();
+    }
+
+    private String generateGetField(GetFieldInstruction getFieldInstruction){
+        var code = new StringBuilder();
+
+        var className = currentMethod.getOllirClass().getClassName();
+        if (!Objects.equals(((Operand) getFieldInstruction.getOperands().get(0)).getName(), "this")){
+            // TODO (luisd): hardcoded for object that it's on index 1
+            code.append("aload_1");
+        } else {
+            code.append("aload_0");
+        }
+        code.append(NL);
+
+        code.append(String.format("getfield %s %s",
+                        className + "/" + getFieldInstruction.getField().getName(),
+                        getJasminTypeOfElement(getFieldInstruction.getField().getType())))
+                .append(NL);
+
+        return code.toString();
+    }
+
+    private String generatePutField(PutFieldInstruction putFieldInstruction){
+        var code = new StringBuilder();
+
+        var className = currentMethod.getOllirClass().getClassName();
+        if (!Objects.equals(((Operand) putFieldInstruction.getOperands().get(0)).getName(), "this")){
+          // TODO (luisd): hardcoded for object that it's on index 1
+          code.append("aload_1");
+        } else {
+            code.append("aload_0");
+        }
+
+        code.append(NL);
+
+        code.append(generators.apply(putFieldInstruction.getValue()));
+
+        code.append(String.format("putfield %s %s",
+                        className + "/" + putFieldInstruction.getField().getName(),
+                        getJasminTypeOfElement(putFieldInstruction.getField().getType())))
+                .append(NL);
+
+        return code.toString();
+    }
 
     private String generateClassUnit(ClassUnit classUnit) {
 
@@ -99,10 +174,24 @@ public class JasminGenerator {
 
             code.append(generators.apply(method));
         }
-
+        System.out.println(code);
         return code.toString();
     }
 
+    private String getJasminTypeOfElement(Type element){
+        return switch (element.getTypeOfElement()) {
+            case INT32 -> "I";
+            case BOOLEAN -> "Z";
+            case STRING -> "Ljava/lang/String;";
+            case ARRAYREF ->
+                    "[".repeat(((ArrayType) element).getNumDimensions())
+                            + getJasminTypeOfElement(((ArrayType) element).getElementType());
+            case VOID -> "V";
+            default -> throw new RuntimeException(
+                    String.format("Jasmin type not handled: %s", element.getTypeOfElement().name())
+            );
+        };
+    }
 
     private String generateMethod(Method method) {
 
@@ -115,11 +204,17 @@ public class JasminGenerator {
         var modifier = method.getMethodAccessModifier() != AccessModifier.DEFAULT ?
                 method.getMethodAccessModifier().name().toLowerCase() + " " :
                 "";
+        if (method.isStaticMethod()){
+            modifier = modifier + "static" + " ";
+        }
 
         var methodName = method.getMethodName();
-
-        // TODO: Hardcoded param types and return type, needs to be expanded
-        code.append("\n.method ").append(modifier).append(methodName).append("(I)I").append(NL);
+        var paramsType = method.getParams().stream().map(Element::getType).map(this::getJasminTypeOfElement)
+                .reduce("", (subtotal, element) -> subtotal + element);
+        var returnType = getJasminTypeOfElement(method.getReturnType());
+        code.append("\n.method ").append(modifier).append(methodName)
+                .append(String.format("(%s)%s", paramsType, returnType))
+                .append(NL);
 
         // Add limits
         code.append(TAB).append(".limit stack 99").append(NL);
@@ -152,14 +247,20 @@ public class JasminGenerator {
         if (!(lhs instanceof Operand)) {
             throw new NotImplementedException(lhs.getClass());
         }
-
         var operand = (Operand) lhs;
 
         // get register
         var reg = currentMethod.getVarTable().get(operand.getName()).getVirtualReg();
+        var type = currentMethod.getVarTable().get(operand.getName()).getVarType();
 
-        // TODO: Hardcoded for int type, needs to be expanded
-        code.append("istore ").append(reg).append(NL);
+        switch (type.getTypeOfElement()){
+            case INT32, BOOLEAN -> code.append("istore ").append(reg).append(NL);
+            case CLASS -> code.append("astore ").append(reg).append(NL);
+            case OBJECTREF -> {}
+            default -> throw new RuntimeException(
+                    String.format("Assign type %s not handled", type.getTypeOfElement().name())
+            );
+        }
 
         return code.toString();
     }
@@ -189,6 +290,11 @@ public class JasminGenerator {
         var op = switch (binaryOp.getOperation().getOpType()) {
             case ADD -> "iadd";
             case MUL -> "imul";
+            // TODO(luisd): test div and sub due to not being commutative
+            case DIV -> "idiv";
+            case SUB -> "isub";
+            case AND, ANDB -> "iand";
+            case OR, ORB -> "ior";
             default -> throw new NotImplementedException(binaryOp.getOperation().getOpType());
         };
 
@@ -200,10 +306,20 @@ public class JasminGenerator {
     private String generateReturn(ReturnInstruction returnInst) {
         var code = new StringBuilder();
 
-        // TODO: Hardcoded to int return type, needs to be expanded
+        switch (returnInst.getReturnType().getTypeOfElement()){
+            case VOID -> code.append("return");
+            case INT32, BOOLEAN -> {
+                code.append(generators.apply(returnInst.getOperand()));
+                code.append("ireturn");
+            }
+            case CLASS -> {
+                code.append(generators.apply(returnInst.getOperand()));
+                code.append("areturn");
+            }
+            default -> throw new RuntimeException(
+                    String.format("Return type %s not handled", returnInst.getReturnType().getTypeOfElement().name()));
 
-        code.append(generators.apply(returnInst.getOperand()));
-        code.append("ireturn").append(NL);
+        }
 
         return code.toString();
     }

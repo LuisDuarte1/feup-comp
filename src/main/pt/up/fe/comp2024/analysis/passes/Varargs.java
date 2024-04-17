@@ -35,7 +35,7 @@ public class Varargs extends AnalysisVisitor {
 
     private Void visitVarDecl(JmmNode varDecl, SymbolTable table) {
         JmmNode varType = varDecl.getChild(0);
-        if (Objects.equals(varType.toString(), "IntVarargsType")) {
+        if (varType.hasAttribute("isVarArgs") && varType.getObject("isVarArgs", Boolean.class)) {
             // Create error report
             var message = String.format("Variable declarations cannot be vararg");
             addReport(Report.newError(

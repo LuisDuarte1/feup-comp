@@ -36,57 +36,6 @@ public class UndeclaredVariable extends AnalysisVisitor {
 
     private Void visitMethodDecl(JmmNode method, SymbolTable table) {
         currentMethod = method.get("name");
-
-        List<Symbol> parameters = table.getParameters(currentMethod);
-        if (!parameters.isEmpty()) {
-            for (int i = 0; i < parameters.size() - 1; i++)
-                if (Objects.equals(parameters.get(i).getType().getName(), "IntVarargsType")) {
-                    var message = "Vararg type must be the last parameter";
-                    addReport(Report.newError(
-                            Stage.SEMANTIC,
-                            NodeUtils.getLine(method),
-                            NodeUtils.getColumn(method),
-                            message,
-                            null)
-                    );
-                }
-
-            if (Objects.equals(parameters.get(parameters.size() - 1).getType().getName(), "IntVarargsType")){
-                JmmNode returnExpr = method.getChild(method.getNumChildren() - 1);
-                if (Objects.equals(returnExpr.getKind(), "VarRefExpr")) {
-                    if (Objects.equals(returnExpr.get("name"), parameters.get(parameters.size() - 1).getName())) {
-                        var message = String.format("Method returns cannot be vararg");
-                        addReport(Report.newError(
-                                Stage.SEMANTIC,
-                                NodeUtils.getLine(method),
-                                NodeUtils.getColumn(method),
-                                message,
-                                null)
-                        );
-                    }
-                } else return null;
-            }
-
-        }
-
-        if (!Objects.equals(currentMethod, "main")){
-            JmmNode returnType = method.getChild(0);
-            JmmNode returnExpr = method.getChild(method.getNumChildren() - 1);
-            Type returnExprType = getExprType(returnExpr, table);
-            if(Objects.equals(returnExprType, null) && Objects.equals(returnExpr.getKind(), "MethodCall"))
-                return null;
-            if (!Objects.equals(getTypeFromGrammarType(returnType), returnExprType)){
-                var message = "Incompatible return type";
-                addReport(Report.newError(
-                        Stage.SEMANTIC,
-                        NodeUtils.getLine(method),
-                        NodeUtils.getColumn(method),
-                        message,
-                        null)
-                );
-            }
-        }
-
         return null;
     }
 
@@ -119,6 +68,7 @@ public class UndeclaredVariable extends AnalysisVisitor {
 
         // Var is an imported class, return
         if (table.getImports().stream().anyMatch(importClass -> importClass.equals(varRefName))) {
+            varRefExpr.putObject("type", annotateType(new Type("imported", false), table));
             return null;
         }
 
