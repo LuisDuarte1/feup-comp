@@ -11,8 +11,7 @@ import pt.up.fe.comp2024.ast.NodeUtils;
 
 import java.util.Objects;
 
-import static pt.up.fe.comp2024.ast.TypeUtils.areTypesAssignable;
-import static pt.up.fe.comp2024.ast.TypeUtils.getExprType;
+import static pt.up.fe.comp2024.ast.TypeUtils.*;
 
 public class AssignmentType extends AnalysisVisitor {
 
@@ -47,6 +46,8 @@ public class AssignmentType extends AnalysisVisitor {
                     null)
             );
         }
+
+        assignStmt.putObject("type", annotateType(typeExpr1, table));
 
         return null;
     }

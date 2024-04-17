@@ -32,7 +32,25 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         addVisit(INTEGER_LITERAL, this::visitInteger);
         addVisit(UNARY_EXPR, this::visitUnaryExpr);
         addVisit(METHOD_CALL, this::visitMethodCall);
+        addVisit(NEW_OBJECT, this::visitNewObject);
         setDefaultVisit(this::defaultVisit);
+    }
+
+    protected OllirExprResult visitNewObject(JmmNode node, Void unused){
+        var computation = new StringBuilder();
+        String register = OptUtils.getTemp();
+        String name = node.get("name");
+        computation.append(String.format("%s.%s :=.%s new(%s).%s;",
+                register, name, name, name, name)).append("\n");
+        var arguments = node.getChildren().stream().map(this::visit).toList();
+        arguments.stream().map(OllirExprResult::getComputation).toList().forEach(computation::append);
+        computation.append(String.format("invokespecial(%s.%s,\"<init>\"%s).V;",
+                        register,
+                        name,
+                        arguments.stream().map(OllirExprResult::getCode).reduce("", (a,b) -> a + "," + b)
+                        ))
+                .append("\n");
+        return new OllirExprResult(register, computation);
     }
 
 
@@ -185,18 +203,23 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
     private OllirExprResult methodCallHelper(JmmNode node, StringBuilder computation, String code, String className,
                                              String type) {
         var arguments = node.getChildren().stream().skip(1).map(this::visit).toList();
+        var object = node
+                .getObject("object", JmmNode.class);
+        var objectType = THIS_LITERAL.check(object) ? "this" : object.getObject("type", Type.class).getName();
         arguments.stream().map(OllirExprResult::getComputation).toList().forEach(computation::append);
         if(type != null){
-            computation.append(String.format("%s%s :=%s invokevirtual(%s, \"%s\"%s)%s;\n",
+            computation.append(String.format("%s%s :=%s invokevirtual(%s%s, \"%s\"%s)%s;\n",
                     code, type, type,
                     className,
+                    THIS_LITERAL.check(object) ? "" : "."+objectType,
                     node.get("name"),
                     arguments.stream().map(OllirExprResult::getCode).reduce("", (a,b) -> a + "," + b),
                     type
             ));
         } else {
-            code = String.format("invokevirtual(%s, \"%s\"%s).V",
+            code = String.format("invokevirtual(%s%s, \"%s\"%s).V",
                     className,
+                    THIS_LITERAL.check(object) ? "" : "."+objectType,
                     node.get("name"),
                     arguments.stream().map(OllirExprResult::getCode).reduce("", (a,b) -> a + "," + b));
         }

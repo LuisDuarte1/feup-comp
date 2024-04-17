@@ -30,7 +30,6 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
 
     private final OllirExprGeneratorVisitor exprVisitor;
 
-    private int tempCounter = 0;
 
     public OllirGeneratorVisitor(SymbolTable table) {
         this.table = table;
@@ -44,6 +43,7 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         addVisit(PROGRAM, this::visitProgram);
         addVisit(CLASS_DECL, this::visitClass);
         addVisit(METHOD, this::visitMethodDecl);
+        addVisit(MAIN_METHOD, this::visitMainMethod);
         addVisit(PARAM, this::visitParam);
         addVisit(ASSIGN_STMT, this::visitAssignStmt);
         addVisit(VAR_DECL, this::defaultVisit);
@@ -62,11 +62,9 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
     private String defaultAddVisit(JmmNode node, Void unused){
         var code = new StringBuilder();
         for(var child: node.getChildren()){
-            if(METHOD_CALL.check(child)){
-                code.append(visit(child)).append(".V;").append(NL);
-            } else {
-                code.append(visit(child));
-            }
+            var childCode = visit(child);
+            if(childCode.isEmpty()) continue;
+            code.append(childCode).append(";").append(NL);
         }
         return code.toString();
     }
@@ -119,10 +117,7 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
 
         code.append(rhs.getCode());
 
-        //infer type by result type
-        if(METHOD_CALL.check(node.getJmmChild(1))){
-            code.append(typeString).append(";").append(NL);
-        }
+        code.append(typeString);
 
         code.append(END_STMT);
 
@@ -137,6 +132,20 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         var id = node.get("name");
 
         return id + typeCode;
+    }
+
+    private String visitMainMethod(JmmNode node, Void unused){
+        StringBuilder code = new StringBuilder(".method public static main(args.array.String).V");
+
+        code.append(L_BRACKET);
+        for (int i = 0; i < node.getNumChildren(); i++) {
+            var child = node.getJmmChild(i);
+            var childCode = visit(child);
+            code.append(childCode);
+        }
+        code.append("ret.V;").append(NL);
+        code.append(R_BRACKET);
+        return code.toString();
     }
 
 

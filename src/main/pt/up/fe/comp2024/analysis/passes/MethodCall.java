@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
-import static pt.up.fe.comp2024.ast.Kind.METHOD;
+import static pt.up.fe.comp2024.ast.Kind.*;
 import static pt.up.fe.comp2024.ast.TypeUtils.getExprType;
 import static pt.up.fe.comp2024.ast.TypeUtils.getVarExprType;
 
@@ -38,7 +38,9 @@ public class MethodCall extends AnalysisVisitor {
 
         if (table.getClassName().equals(funcType.getName()) && table.getMethods().contains(memberCall.get("name"))) {
             List<Symbol> params = table.getParameters(memberCall.get("name"));
-
+            if (params.isEmpty()){
+                return  null;
+            }
             var lastParamType = params.get(params.size() - 1).getType();
             if (lastParamType.hasAttribute("isVarArgs") && lastParamType.getObject("isVarArgs", Boolean.class)) {
                 boolean flag = true;
@@ -50,7 +52,7 @@ public class MethodCall extends AnalysisVisitor {
             if (params.size() == (memberCall.getChildren().size() - 1)) {
                 boolean flag = true;
                 for (int i = 0; i < params.size(); i++)
-                    flag &= (params.get(i).getType() == TypeUtils.getExprType(memberCall.getChild(i + 1), table));
+                    flag &= params.get(i).getType().equals(TypeUtils.getExprType(memberCall.getChild(i + 1), table));
                 if (flag) return null;
             }
         }
@@ -60,6 +62,14 @@ public class MethodCall extends AnalysisVisitor {
                 || (table.getClassName().equals(funcType.getName()) && table.getImports().contains(table.getSuper()))) {
             return null;
         }
+
+        if (memberCall.hasAttribute("object") && VAR_REF_EXPR.check(memberCall.getChild(0))){
+            var importName = memberCall.getChild(0).get("name");
+            if(table.getImports().contains(importName)){
+                return null;
+            }
+        }
+
 
         var message = String.format("Couldn't resolve member method call '%s()'", memberCall.get("name"));
         addReport(Report.newError(
