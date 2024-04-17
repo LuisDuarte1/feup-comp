@@ -1,0 +1,19 @@
+HelloWorld extends Object {
+
+.field public bloat.bool;
+.field public prazer.i32;
+
+.method public funcPrazer().V {
+putfield(this, bloat.bool, 1.bool).V;
+putfield(this, prazer.i32, 5.i32).V;
+ret.V ;
+}
+
+.method public static main(args.array.String).V {
+ret.V ;
+}
+
+.construct HelloWorld().V {
+invokespecial(this, "").V;
+}
+}

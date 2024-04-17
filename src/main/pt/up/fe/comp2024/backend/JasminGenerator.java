@@ -139,15 +139,17 @@ public class JasminGenerator {
 
         var className = currentMethod.getOllirClass().getClassName();
         if (!Objects.equals(((Operand) getFieldInstruction.getOperands().get(0)).getName(), "this")){
-            // TODO (luisd): hardcoded for object that it's on index 1
-            code.append("aload_1");
+            code.append(String.format("aload %s",
+                    currentMethod.getVarTable().get(
+                            ((Operand) getFieldInstruction.getOperands().get(0)).getName()).getVirtualReg()
+            ));
         } else {
             code.append("aload_0");
         }
         code.append(NL);
 
         code.append(String.format("getfield %s %s",
-                        className + "/" + getFieldInstruction.getField().getName(),
+                        className + "/" +getFieldInstruction.getField().getName(),
                         getJasminTypeOfElement(getFieldInstruction.getField().getType())))
                 .append(NL);
 
@@ -159,8 +161,10 @@ public class JasminGenerator {
 
         var className = currentMethod.getOllirClass().getClassName();
         if (!Objects.equals(((Operand) putFieldInstruction.getOperands().get(0)).getName(), "this")){
-          // TODO (luisd): hardcoded for object that it's on index 1
-          code.append("aload_1");
+            code.append(String.format("aload %s",
+                    currentMethod.getVarTable().get(
+                            ((Operand) putFieldInstruction.getOperands().get(0)).getName()).getVirtualReg()
+            ));
         } else {
             code.append("aload_0");
         }
@@ -187,6 +191,13 @@ public class JasminGenerator {
 
         // TODO: Hardcoded to Object, needs to be expanded
         code.append(".super java/lang/Object").append(NL);
+
+        ollirResult.getOllirClass().getFields()
+                .stream().map((val) -> String.format(".field %s %s %s\n",
+                        val.getFieldAccessModifier().name().toLowerCase(),
+                        val.getFieldName(),
+                        getJasminTypeOfElement(val.getFieldType())))
+                .toList().forEach(code::append);
 
         // generate a single constructor method
         var defaultConstructor = """

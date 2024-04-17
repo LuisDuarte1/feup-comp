@@ -1,0 +1,12 @@
+
+class HelloWorld {
+    boolean bloat;
+    int prazer;
+    public void funcPrazer(){
+        bloat = true;
+        prazer = 5;
+    }
+    public static void main(String[] args) {
+
+    }
+}
