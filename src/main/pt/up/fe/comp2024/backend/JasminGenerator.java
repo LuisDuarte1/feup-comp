@@ -194,7 +194,8 @@ public class JasminGenerator {
 
         ollirResult.getOllirClass().getFields()
                 .stream().map((val) -> String.format(".field %s %s %s\n",
-                        val.getFieldAccessModifier().name().toLowerCase(),
+                        val.getFieldAccessModifier().name().equalsIgnoreCase("default")
+                                ? "public" : val.getFieldAccessModifier().name().toLowerCase(),
                         val.getFieldName(),
                         getJasminTypeOfElement(val.getFieldType())))
                 .toList().forEach(code::append);
