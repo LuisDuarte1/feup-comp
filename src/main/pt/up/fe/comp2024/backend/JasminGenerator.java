@@ -2,6 +2,7 @@ package pt.up.fe.comp2024.backend;
 
 import org.specs.comp.ollir.*;
 import org.specs.comp.ollir.tree.TreeNode;
+import org.stringtemplate.v4.ST;
 import pt.up.fe.comp.jmm.ollir.OllirResult;
 import pt.up.fe.comp.jmm.report.Report;
 import pt.up.fe.specs.util.classmap.FunctionClassMap;
@@ -74,9 +75,9 @@ public class JasminGenerator {
         switch (callInstruction.getInvocationType()){
             case NEW -> {
                 code.append(String.format("new %s", ((ClassType) callInstruction.getReturnType()).getName())).append(NL);
+                code.append("dup").append(NL);
             }
             case invokespecial -> {
-                code.append("dup").append(NL);
                 code.append(
                         callInstruction.getArguments().stream()
                                 .map(generators::apply)
@@ -91,7 +92,43 @@ public class JasminGenerator {
 
                 code.append(String.format("invokespecial %s",
                         String.format("%s(%s)%s", className+"/"+methodName,paramsType, returnType))).append(NL);
-                code.append("astore_1").append(NL);
+            }
+            case invokestatic -> {
+                code.append(
+                        callInstruction.getArguments().stream()
+                                .map(generators::apply)
+                                .reduce("", (a , b) -> {return a + NL + b;})
+                ).append(NL);
+
+                var className = ((Operand) callInstruction.getCaller()).getName();
+                var methodName = ((LiteralElement) callInstruction.getMethodName()).getLiteral().replace("\"", "");
+                var paramsType = callInstruction.getArguments().stream().map(Element::getType).map(this::getJasminTypeOfElement)
+                        .reduce("", (subtotal, element) -> subtotal + element);
+                var returnType = getJasminTypeOfElement(callInstruction.getReturnType());
+
+                code.append(String.format("invokestatic %s",
+                        String.format("%s(%s)%s", className+"/"+methodName,paramsType, returnType))).append(NL);
+            }
+            case invokevirtual -> {
+                var className = ((Operand) callInstruction.getCaller()).getName();
+                if (Objects.equals(className, "this")) {
+                    code.append("aload_0").append(NL);
+                }
+                else code.append(String.format("aload %d", currentMethod.getVarTable().get(className).getVirtualReg()));
+                className = ((ClassType) callInstruction.getCaller().getType()).getName();
+                code.append(
+                        callInstruction.getArguments().stream()
+                                .map(generators::apply)
+                                .reduce("", (a , b) -> {return a + NL + b;})
+                ).append(NL);
+
+                var methodName = ((LiteralElement) callInstruction.getMethodName()).getLiteral().replace("\"", "");
+                var paramsType = callInstruction.getArguments().stream().map(Element::getType).map(this::getJasminTypeOfElement)
+                        .reduce("", (subtotal, element) -> subtotal + element);
+                var returnType = getJasminTypeOfElement(callInstruction.getReturnType());
+                code.append(String.format("invokevirtual %s",
+                        String.format("%s(%s)%s", className+"/"+methodName,paramsType, returnType))).append(NL);
+
             }
         }
         return code.toString();
@@ -187,6 +224,7 @@ public class JasminGenerator {
                     "[".repeat(((ArrayType) element).getNumDimensions())
                             + getJasminTypeOfElement(((ArrayType) element).getElementType());
             case VOID -> "V";
+            case CLASS,OBJECTREF -> String.format("L%s;", "L");
             default -> throw new RuntimeException(
                     String.format("Jasmin type not handled: %s", element.getTypeOfElement().name())
             );
@@ -256,7 +294,7 @@ public class JasminGenerator {
         switch (type.getTypeOfElement()){
             case INT32, BOOLEAN -> code.append("istore ").append(reg).append(NL);
             case CLASS -> code.append("astore ").append(reg).append(NL);
-            case OBJECTREF -> {}
+            case OBJECTREF -> code.append("astore ").append(reg).append(NL);
             default -> throw new RuntimeException(
                     String.format("Assign type %s not handled", type.getTypeOfElement().name())
             );
@@ -276,7 +314,15 @@ public class JasminGenerator {
     private String generateOperand(Operand operand) {
         // get register
         var reg = currentMethod.getVarTable().get(operand.getName()).getVirtualReg();
-        return "iload " + reg + NL;
+        return switch (operand.getType().getTypeOfElement()){
+            case INT32,BOOLEAN -> "iload ";
+            case OBJECTREF,CLASS -> "aload ";
+            case THIS -> "aload_0";
+            default ->
+                    throw new NotImplementedException(
+                            String.format("Operand %s is not implemented",
+                                    operand.getType().getTypeOfElement().name()));
+        }+ reg + NL;
     }
 
     private String generateBinaryOp(BinaryOpInstruction binaryOp) {
