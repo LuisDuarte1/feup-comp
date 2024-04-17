@@ -54,11 +54,11 @@ program
     ;
 
 importDecl
-    : IMPORT modules+=ID (DOT modules+=ID)* SEMI
+    : IMPORT modules+=(ID | LENGTH | MAIN) (DOT modules+=(ID | LENGTH | MAIN))* SEMI
     ;
 
 classDecl locals[boolean hasParent=false]
-    : CLASS name=ID ('extends' {$hasParent = true;} parent=ID)?
+    : CLASS name=(ID | LENGTH | MAIN) ('extends' {$hasParent = true;} parent=(ID | LENGTH | MAIN))?
         LCURLY
         varDecl*
         methodDecl*
@@ -75,22 +75,22 @@ type
     | BOOL #BoolType
     | STRING #StrType
     | INT #IntType
-    | name= ID  #ObjectType
+    | name= (ID | LENGTH | MAIN)  #ObjectType
     ;
 
 methodDecl locals[boolean isPublic=false] //Guarantees that methodDecl always has an isPublic value
     : (PUBLIC {$isPublic=true;})? 'static' returnType='void' name=MAIN
-        LPAREN STRING LBRACKET RBRACKET ID RPAREN
+        LPAREN STRING LBRACKET RBRACKET (ID | LENGTH | MAIN) RPAREN
         LCURLY varDecl* stmt* RCURLY #MainMethod
     | (PUBLIC {$isPublic=true;})?
-        returnType=type name=ID
+        returnType=type name=(ID | LENGTH | MAIN)
         LPAREN (param (COMMA param)*)? RPAREN
         LCURLY varDecl* stmt* RETURN returnExpr=expr SEMI RCURLY #Method
 
     ;
 
 param
-    : typename=type name=ID
+    : typename=type name=(ID | LENGTH | MAIN)
     ;
 
 stmt
@@ -105,7 +105,7 @@ stmt
 expr
     : LPAREN expr RPAREN #PriorityExpr
     | op= NOT expr #UnaryExpr
-    | object=expr DOT name=ID LPAREN
+    | object=expr DOT name=(ID | LENGTH | MAIN) LPAREN
         (expr (COMMA expr)*)?
         RPAREN #MethodCall
     | expr LBRACKET expr RBRACKET #ListAccess
@@ -114,11 +114,11 @@ expr
     | expr op=(ADD | SUB) expr #BinaryExpr //
     | expr op= LESS expr #BinaryExpr
     | expr op= LOGICAL_AND expr #BinaryExpr
-    | NEW name=ID LPAREN (expr (COMMA expr)*)? RPAREN #NewObject
+    | NEW name=(ID | LENGTH | MAIN) LPAREN (expr (COMMA expr)*)? RPAREN #NewObject
     | NEW INT LBRACKET expr RBRACKET #NewArray
     | LBRACKET (expr (COMMA expr)*)? RBRACKET #Array
     | value=INTEGER #IntegerLiteral//
     | (TRUE | FALSE) #BooleanLiteral
     | 'this' #ThisLiteral
-    | name=ID #VarRefExpr //
+    | name=(ID | LENGTH | MAIN) #VarRefExpr //
     ;

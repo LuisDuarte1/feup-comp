@@ -13,6 +13,7 @@ public enum Kind {
     CLASS_DECL,
     VAR_DECL,
     PARAM,
+    ID,
 
     //Type
     INT_ARRAY_TYPE,

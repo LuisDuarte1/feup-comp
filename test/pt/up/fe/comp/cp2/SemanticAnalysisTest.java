@@ -133,6 +133,12 @@ public class SemanticAnalysisTest {
     }
 
     @Test
+    public void varDeclNames() {
+        var result = TestUtils.analyse(SpecsIo.getResource("pt/up/fe/comp/cp2/semanticanalysis/OursVarDeclName.jmm"));
+        TestUtils.noErrors(result);
+    }
+
+    @Test
     public void callToUndeclaredMethod() {
         var result = TestUtils.analyse(SpecsIo.getResource("pt/up/fe/comp/cp2/semanticanalysis/CallToUndeclaredMethod.jmm"));
         TestUtils.mustFail(result);
