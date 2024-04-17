@@ -78,12 +78,14 @@ public class JasminGenerator {
                 code.append("dup").append(NL);
             }
             case invokespecial -> {
+                final Operand caller = (Operand) callInstruction.getCaller();
+                final ClassType classType = (ClassType) caller.getType();
+                code.append(String.format("aload %d", currentMethod.getVarTable().get(caller.getName()).getVirtualReg()));
                 code.append(
                         callInstruction.getArguments().stream()
                                 .map(generators::apply)
                                 .reduce("", (a , b) -> {return a + NL + b;})
                 ).append(NL);
-                final ClassType classType = (ClassType) ((Operand) callInstruction.getCaller()).getType();
                 var className = currentMethod.getOllirClass().getImports().stream()
                         .filter(((val) -> val.endsWith(classType.getName())))
                         .findFirst().orElse(classType.getName()).replace(".", "/");
@@ -295,8 +297,16 @@ public class JasminGenerator {
         for (var inst : method.getInstructions()) {
             var instCode = StringLines.getLines(generators.apply(inst)).stream()
                     .collect(Collectors.joining(NL + TAB, TAB, NL));
-
             code.append(instCode);
+
+            if(inst instanceof CallInstruction){
+                var funcReturnType = ((CallInstruction) inst).getReturnType().getTypeOfElement();
+                var callInstructionType = ((CallInstruction) inst).getInvocationType();
+                if(!method.isConstructMethod() && (funcReturnType == ElementType.VOID && callInstructionType == CallType.invokespecial)){
+                    code.append("pop").append(NL);
+                }
+            }
+
         }
 
         code.append(".end method\n");
