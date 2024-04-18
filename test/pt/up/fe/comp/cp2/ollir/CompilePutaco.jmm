@@ -24,7 +24,7 @@ class PutacoFactory extends Instant {
         b = 2;
         pf = new PutacoFactory();
         pf.prazer(new Instant(), new Prazer(), Prazer.create(),
-            (2+5+6+7*5), (pf.lmao(b)-2)/5, 5 < 4, !(Prazer.bool() < pf.lmaoBool(b) && Prazer.kekw()));
+            (2+5+6+7*5), (pf.lmao(b)-2)/5, !true, !(Prazer.bool() < pf.lmaoBool(b) && Prazer.kekw() && true && 5 < 3));
     }
 
 }

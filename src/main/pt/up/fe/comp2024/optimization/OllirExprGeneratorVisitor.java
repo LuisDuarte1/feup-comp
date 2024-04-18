@@ -223,10 +223,11 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
             var foundReturnType = OptUtils.toOllirType(table.getReturnType(node.get("name")));
             return methodCallHelper(node, computation, code+foundReturnType, "this."+table.getClassName(),
                     foundReturnType, true);
-        } else
+        }
         if (THIS_LITERAL.check(node.getJmmChild(0))) {
             return methodCallHelper(node, computation, code+type, "this."+table.getClassName(), type, false);
         }
+
         var ref = node.getChild(0).get("name");
         // it mean it's an class field
         if(table.getFields().stream().anyMatch((value) -> Objects.equals(value.getName(), ref))){
@@ -242,6 +243,26 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
             currNode = currNode.getParent();
         }
         methodName = currNode.get("name");
+
+        if(table.getLocalVariables(methodName).stream().anyMatch((val) -> Objects.equals(val.getName(), ref))
+            && Objects.equals(
+                    table.getLocalVariables(methodName).stream().filter((val) -> Objects.equals(val.getName(), ref))
+                            .findFirst().orElseThrow().getType().getName(),
+                table.getClassName()) && type == null)  {
+            var foundReturnType = OptUtils.toOllirType(table.getReturnType(node.get("name")));
+            return methodCallHelper(node, computation, code+foundReturnType, code+"."+table.getClassName(),
+                    foundReturnType, true);
+        }
+
+        if(table.getParameters(methodName).stream().anyMatch((val) -> Objects.equals(val.getName(), ref))
+                && Objects.equals(
+                table.getParameters(methodName).stream().filter((val) -> Objects.equals(val.getName(), ref))
+                        .findFirst().orElseThrow().getType().getName(),
+                table.getClassName()) && type == null)  {
+            var foundReturnType = OptUtils.toOllirType(table.getReturnType(node.get("name")));
+            return methodCallHelper(node, computation, code+foundReturnType, code+"."+table.getClassName(),
+                    foundReturnType, true);
+        }
 
         if(table.getLocalVariables(methodName).stream().anyMatch((val) -> Objects.equals(val.getName(), ref))
             || table.getParameters(methodName).stream().anyMatch((val) -> Objects.equals(val.getName(), ref))){
