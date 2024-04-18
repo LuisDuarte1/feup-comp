@@ -11,6 +11,7 @@ import pt.up.fe.comp2024.ast.NodeUtils;
 
 import java.util.Objects;
 
+import static pt.up.fe.comp2024.ast.TypeUtils.annotateType;
 import static pt.up.fe.comp2024.ast.TypeUtils.getExprType;
 
 /**
@@ -46,12 +47,14 @@ public class ArithmeticOperation extends AnalysisVisitor {
 
 
         Type typeExpr1 = getExprType(expr1, table);
-        if (!typeExpr1.equals(opType) && !(Objects.equals(op, "<") && typeExpr1.getName().equals("int"))) {
+        if (!typeExpr1.equals(opType) && !(Objects.equals(op, "<") && typeExpr1.getName().equals("int")) &&
+                !typeExpr1.getName().equals("imported")) {
             createErrorReport(binaryExpr, expr1, typeExpr1, binaryExpr.get("op"));
         }
 
         Type typeExpr2 = getExprType(expr2, table);
-        if (!typeExpr2.equals(opType) && !(Objects.equals(op, "<") && typeExpr2.getName().equals("int"))) {
+        if (!typeExpr2.equals(opType) && !(Objects.equals(op, "<") && typeExpr2.getName().equals("int")) &&
+                !typeExpr1.getName().equals("imported")) {
             createErrorReport(binaryExpr, expr2, typeExpr2, binaryExpr.get("op"));
         }
 

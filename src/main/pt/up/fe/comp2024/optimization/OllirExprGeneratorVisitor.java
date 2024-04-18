@@ -129,6 +129,10 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
 
     private OllirExprResult visitBinExpr(JmmNode node, Void unused) {
 
+        // code to compute self
+        Type resType = TypeUtils.getExprType(node, table);
+        String resOllirType = OptUtils.toOllirType(resType);
+
         var lhs = visit(node.getJmmChild(0));
         var rhs = visit(node.getJmmChild(1));
 
@@ -138,9 +142,7 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         computation.append(lhs.getComputation());
         computation.append(rhs.getComputation());
 
-        // code to compute self
-        Type resType = TypeUtils.getExprType(node, table);
-        String resOllirType = OptUtils.toOllirType(resType);
+
         String code = OptUtils.getTemp() + resOllirType;
 
         computation.append(code).append(SPACE)
