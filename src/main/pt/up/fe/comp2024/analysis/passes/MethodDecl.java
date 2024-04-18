@@ -11,7 +11,9 @@ import pt.up.fe.comp2024.ast.Kind;
 import pt.up.fe.comp2024.ast.NodeUtils;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import static pt.up.fe.comp2024.ast.TypeUtils.getExprType;
 import static pt.up.fe.comp2024.ast.TypeUtils.getTypeFromGrammarType;
@@ -27,7 +29,35 @@ public class MethodDecl extends AnalysisVisitor {
     private Void visitMethodDecl(JmmNode method, SymbolTable table) {
         String currentMethod = method.get("name");
 
+        long methods = table.getMethods().stream().filter(var -> var.equals(currentMethod)).count();
+        if (methods > 1) {
+            var message = String.format("Method '%s' is duplicated", currentMethod);
+            addReport(Report.newError(
+                    Stage.SEMANTIC,
+                    NodeUtils.getLine(method),
+                    NodeUtils.getColumn(method),
+                    message,
+                    null)
+            );
+
+        }
+
         List<Symbol> parameters = table.getParameters(currentMethod);
+        Map<String, Long> parameterCounts = parameters.stream()
+                .collect(Collectors.groupingBy(Symbol::getName, Collectors.counting()));
+
+        parameterCounts.forEach((paramName, count) -> {
+            if (count > 1) {
+                var message = String.format("Parameter '%s' is duplicated", paramName);
+                addReport(Report.newError(
+                        Stage.SEMANTIC,
+                        NodeUtils.getLine(method),
+                        NodeUtils.getColumn(method),
+                        message,
+                        null)
+                );
+            }
+        });
         if (!parameters.isEmpty()) {
             for (int i = 0; i < parameters.size() - 1; i++)
                 if (parameters.get(i).getType().hasAttribute("isVarArgs") && parameters.get(i).getType().getObject("isVarArgs", Boolean.class)) {
