@@ -91,7 +91,7 @@ methodDecl locals[boolean isPublic=false] //Guarantees that methodDecl always ha
     ;
 
 param
-    : typename=type name=(ID | LENGTH | MAIN)
+    : typename=type name=(ID | LENGTH | MAIN | THIS)
     ;
 
 stmt

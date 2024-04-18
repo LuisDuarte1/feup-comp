@@ -1,16 +1,20 @@
-class ThisInMethod {
+class ThisAsObject {
 
     public static void main(String[] args) {
 
     }
 
-    public ThisInMethod foo(ThisInMethod b) {
-        ThisInMethod a;
+    public ThisAsObject foo(ThisAsObject b) {
+        ThisAsObject a;
         a = this;
         this = a;
         a = this.foo(this);
 
 
         return a;
+    }
+
+    public int a(ThisAsObject this){
+      return 1;
     }
 }
