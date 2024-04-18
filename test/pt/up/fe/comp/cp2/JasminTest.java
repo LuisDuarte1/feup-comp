@@ -37,7 +37,14 @@ public class JasminTest {
     public void InstantTest(){
         testOllirToJasmin("pt/up/fe/comp/cp2/jasmin/InstantTest.ollir");
     }
-    
+
+    @Test
+    public void LessTest(){
+        testOllirToJasmin("pt/up/fe/comp/cp2/jasmin/LessTest.ollir");
+    }
+
+
+
     @Test
     public void ollirToJasminInvoke() {
         testOllirToJasmin("pt/up/fe/comp/cp2/jasmin/OllirToJasminInvoke.ollir");

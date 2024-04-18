@@ -5,6 +5,7 @@ import org.specs.comp.ollir.tree.TreeNode;
 import org.stringtemplate.v4.ST;
 import pt.up.fe.comp.jmm.ollir.OllirResult;
 import pt.up.fe.comp.jmm.report.Report;
+import pt.up.fe.comp2024.optimization.OptUtils;
 import pt.up.fe.specs.util.classmap.FunctionClassMap;
 import pt.up.fe.specs.util.exceptions.NotImplementedException;
 import pt.up.fe.specs.util.utilities.StringLines;
@@ -13,6 +14,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+
+import static pt.up.fe.comp2024.optimization.OptUtils.getTemp;
 
 /**
  * Generates Jasmin code from an OllirResult.
@@ -395,6 +398,12 @@ public class JasminGenerator {
             case SUB -> "isub";
             case AND, ANDB -> "iand";
             case OR, ORB -> "ior";
+            case LTH -> {
+                var elseLabel = OptUtils.getTemp();
+                var nextLabel = OptUtils.getTemp();
+                yield String.format("if_icmpge %s\n ldc 1\n goto %s \n %s:\n ldc 0\n %s:",
+                        elseLabel, nextLabel, elseLabel, nextLabel);
+            }
             default -> throw new NotImplementedException(binaryOp.getOperation().getOpType());
         };
 

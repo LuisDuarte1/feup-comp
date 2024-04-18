@@ -1,0 +1,14 @@
+import io;
+HelloWorld extends Object {
+
+
+.method public static main(args.array.String).V {
+tmp0.bool :=.bool 5.i32 <.bool 6.i32;
+invokestatic(io, "println", tmp0.bool).V;
+ret.V ;
+}
+
+.construct HelloWorld().V {
+invokespecial(this, "").V;
+}
+}
