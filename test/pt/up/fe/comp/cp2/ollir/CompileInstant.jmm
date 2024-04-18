@@ -1,0 +1,9 @@
+import java.time.Instant;
+class PrazerFactory {
+
+	public static void main(String[] args) {
+		Instant a;
+        a = Instant.now();
+	}
+
+}

@@ -79,7 +79,8 @@ public class TypeUtils {
                         yield localType;
                     } else {
                         var object = expr.getObject("object", JmmNode.class);
-                        if (table.getImports().contains(getExprType(object, table).getName())) //Class of the method is imported
+                        if (table.getImports().contains(getExprType(object, table).getName()) ||
+                                Objects.equals(getExprType(object, table).getName(), "imported")) //Class of the method is imported
                         {
                             yield new Type("imported", false);
                         }
