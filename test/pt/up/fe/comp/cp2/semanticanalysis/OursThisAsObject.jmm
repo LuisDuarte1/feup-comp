@@ -9,8 +9,6 @@ class ThisAsObject {
         a = this;
         this = a;
         a = this.foo(this);
-
-
         return a;
     }
 

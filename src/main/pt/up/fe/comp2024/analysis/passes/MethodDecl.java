@@ -39,7 +39,6 @@ public class MethodDecl extends AnalysisVisitor {
                     message,
                     null)
             );
-
         }
 
         List<Symbol> parameters = table.getParameters(currentMethod);
@@ -58,6 +57,41 @@ public class MethodDecl extends AnalysisVisitor {
                 );
             }
         });
+
+        List<String> imports = table.getImports();
+        Map<String, Long> importCounts = imports.stream()
+                .collect(Collectors.groupingBy(s -> s, Collectors.counting()));
+
+        importCounts.forEach((importName, count) -> {
+            if (count > 1) {
+                var message = String.format("Import '%s' is duplicated", importName);
+                addReport(Report.newError(
+                        Stage.SEMANTIC,
+                        -1,
+                        -1,
+                        message,
+                        null)
+                );
+            }
+        });
+
+        List<Symbol> fields = table.getFields();
+        Map<String, Long> fieldCounts = fields.stream()
+                .collect(Collectors.groupingBy(Symbol::getName, Collectors.counting()));
+
+        fieldCounts.forEach((fieldName, count) -> {
+            if (count > 1) {
+                var message = String.format("Field '%s' is duplicated", fieldName);
+                addReport(Report.newError(
+                        Stage.SEMANTIC,
+                        -1,
+                        -1,
+                        message,
+                        null)
+                );
+            }
+        });
+
         if (!parameters.isEmpty()) {
             for (int i = 0; i < parameters.size() - 1; i++)
                 if (parameters.get(i).getType().hasAttribute("isVarArgs") && parameters.get(i).getType().getObject("isVarArgs", Boolean.class)) {
