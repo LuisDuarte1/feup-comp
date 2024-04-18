@@ -69,7 +69,7 @@ public class TypeUtils {
                     if (ARRAY.check(array)) {
                         arrayType = getExprType(array.getChild(0), table);
                     } //If it's an in place array
-                    else arrayType = getVarExprType(expr.getChild(0), table);
+                    else arrayType = getExprType(expr.getChild(0), table);
                     yield new Type(arrayType.getName(), false); //Same type as array but the access itself is not an array
                 }
                 case LENGTH_CALL -> new Type(INT_TYPE_NAME, false);

@@ -128,6 +128,12 @@ public class SemanticAnalysisTest {
     }
 
     @Test
+    public void returnArrayAndIndex() {
+        var result = TestUtils.analyse(SpecsIo.getResource("pt/up/fe/comp/cp2/semanticanalysis/OursReturnArrayAndIndex.jmm"));
+        TestUtils.noErrors(result);
+    }
+
+    @Test
     public void intInIfCondition() {
         var result = TestUtils.analyse(SpecsIo.getResource("pt/up/fe/comp/cp2/semanticanalysis/IntInIfCondition.jmm"));
         TestUtils.mustFail(result);
