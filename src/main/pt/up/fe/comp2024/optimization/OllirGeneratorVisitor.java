@@ -1,5 +1,6 @@
 package pt.up.fe.comp2024.optimization;
 
+import org.specs.comp.ollir.ClassType;
 import pt.up.fe.comp.jmm.analysis.table.SymbolTable;
 import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.ast.AJmmVisitor;
@@ -86,8 +87,13 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
 
 
     private String visitVarDeclClass(JmmNode jmmNode) {
+        if (OBJECT_TYPE.check(jmmNode.getChild(0))){
 
-        return ".field public " + jmmNode.get("name") + OptUtils.toOllirType(jmmNode.getChild(0)) +";" + NL;
+            return ".field public " + jmmNode.get("name") + "."+jmmNode.getChild(0).get("name") +";" + NL;
+        } else {
+            return ".field public " + jmmNode.get("name") + OptUtils.toOllirType(jmmNode.getChild(0)) +";" + NL;
+
+        }
     }
 
 
@@ -197,7 +203,7 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         //parse return statement, if it exists
         var lastChild = node.getChildren().get(node.getNumChildren() - 1);
         if (!retType.equals("V")){
-            var expr = exprVisitor.visit(lastChild);
+            var expr = exprVisitor.visitForceTemp(lastChild, retType);
             code.append(expr.getComputation());
             code.append(String.format("ret%s %s;", retType, expr.getCode()));
         } else {

@@ -45,6 +45,15 @@ public class OllirTest {
 
     }
 
+    @Test
+    public void compileInstantWithField(){
+        testJmmCompilation("pt/up/fe/comp/cp2/ollir/CompileInstantWithFields.jmm", (classunit) -> {
+
+        });
+
+    }
+
+
     public static void testJmmCompilation(String resource, Consumer<ClassUnit> ollirTester, String executionOutput) {
 
         // If AstToJasmin pipeline, generate Jasmin
