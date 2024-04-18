@@ -99,33 +99,48 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
 
     private String visitAssignStmt(JmmNode node, Void unused) {
 
-        var lhs = exprVisitor.visit(node.getJmmChild(0));
-        var rhs = exprVisitor.visit(node.getJmmChild(1));
-
         StringBuilder code = new StringBuilder();
 
-        // code to compute the children
-        code.append(lhs.getComputation());
-        code.append(rhs.getComputation());
 
         // code to compute self
         // statement has type of lhs
         Type thisType = TypeUtils.getExprType(node.getJmmChild(0), table);
         String typeString = OptUtils.toOllirType(thisType);
 
+        if(table.getFields().stream()
+                .anyMatch((val) -> Objects.equals(val.getName(), node.getJmmChild(0).get("name")))){
+            var rhs = exprVisitor.visit(node.getJmmChild(1));
+            code.append(rhs.getComputation());
+            
 
-        code.append(lhs.getCode());
-        code.append(SPACE);
+            code.append(String.format(
+                    "putfield(this, %s%s, %s).V",
+                    node.getJmmChild(0).get("name"), typeString,
+                    rhs.getCode()
+                    ))
+                .append(END_STMT);
+        } else {
+            var lhs = exprVisitor.visit(node.getJmmChild(0));
+            var rhs = exprVisitor.visit(node.getJmmChild(1));
 
-        code.append(ASSIGN);
-        code.append(typeString);
-        code.append(SPACE);
 
-        code.append(rhs.getCode());
+            // code to compute the children
+            code.append(lhs.getComputation());
+            code.append(rhs.getComputation());
 
-        code.append(typeString);
+            code.append(lhs.getCode());
+            code.append(SPACE);
 
-        code.append(END_STMT);
+            code.append(ASSIGN);
+            code.append(typeString);
+            code.append(SPACE);
+
+            code.append(rhs.getCode());
+
+            code.append(typeString);
+
+            code.append(END_STMT);
+        }
 
         return code.toString();
     }

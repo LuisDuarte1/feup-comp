@@ -243,6 +243,7 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
                         arguments.stream().map(OllirExprResult::getCode).reduce("", (a,b) -> a + "," + b),
                         type
                 ));
+                code += type;
             } else {
                 code = String.format("invokestatic(%s, \"%s\"%s).V",
                         ref,

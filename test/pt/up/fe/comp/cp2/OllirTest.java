@@ -53,6 +53,13 @@ public class OllirTest {
     }
 
     @Test
+    public void compileInstantWithFields(){
+        testJmmCompilation("pt/up/fe/comp/cp2/ollir/CompileInstantWithFields.jmm", (classunit) -> {
+        });
+
+    }
+
+    @Test
     public void compileBooleanMethodDecl(){
         testJmmCompilation("pt/up/fe/comp/cp2/ollir/BooleanMethodDecl.jmm", (classunit) -> {
         });
