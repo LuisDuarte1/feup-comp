@@ -32,12 +32,18 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         addVisit(VAR_REF_EXPR, this::visitVarRef);
         addVisit(BINARY_EXPR, this::visitBinExpr);
         addVisit(INTEGER_LITERAL, this::visitInteger);
+        addVisit(BOOLEAN_LITERAL, this::visitBool);
         addVisit(UNARY_EXPR, this::visitUnaryExpr);
         addVisit(METHOD_CALL, this::visitMethodCall);
         addVisit(NEW_OBJECT, this::visitNewObject);
         setDefaultVisit(this::defaultVisit);
     }
 
+    public OllirExprResult visitBool(JmmNode node, Void unused){
+        return new OllirExprResult(
+                (Objects.equals(node.get("value"), "true") ? "1" : "0")
+                        +".bool");
+    }
     public OllirExprResult visitForceTemp(JmmNode node, String type){
         var computation = new StringBuilder();
         String register = OptUtils.getTemp();
@@ -47,7 +53,9 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
 
         final Pattern pattern = Pattern.compile("(.*)(\\.[a-z0-9A-Z]*)");
         var matcher = pattern.matcher(nodeComp.getCode());
-        if(!matcher.find()) throw new RuntimeException("Could find match for returned code");
+        if(!matcher.find()){
+            return nodeComp;
+        }
         var returnedRegister = matcher.group(1);
 
         computation.append(String.format("%s%s :=%s %s%s;",

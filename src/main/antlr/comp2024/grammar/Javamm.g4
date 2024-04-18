@@ -119,7 +119,7 @@ expr
     | NEW INT LBRACKET expr RBRACKET #NewArray
     | LBRACKET (expr (COMMA expr)*)? RBRACKET #Array
     | value=INTEGER #IntegerLiteral//
-    | (TRUE | FALSE) #BooleanLiteral
+    | value=(TRUE | FALSE) #BooleanLiteral
     | 'this' #ThisLiteral
     | name=(ID | LENGTH | MAIN | THIS) #VarRefExpr //
     ;

@@ -1,0 +1,12 @@
+import io;
+class BoolMethodDecl {
+	public boolean compFac(boolean num){
+             return true;
+  	}
+
+	public static void main(String[] args){
+ 	      Fac a;
+              a = new Fac();
+              a.compFac(false);
+	}
+}
