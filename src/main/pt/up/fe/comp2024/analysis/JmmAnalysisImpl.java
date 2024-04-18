@@ -1,5 +1,6 @@
 package pt.up.fe.comp2024.analysis;
 
+import com.sun.jdi.Method;
 import pt.up.fe.comp.jmm.analysis.JmmAnalysis;
 import pt.up.fe.comp.jmm.analysis.JmmSemanticsResult;
 import pt.up.fe.comp.jmm.analysis.table.SymbolTable;
@@ -19,7 +20,7 @@ public class JmmAnalysisImpl implements JmmAnalysis {
     private final List<AnalysisPass> analysisPasses;
 
     public JmmAnalysisImpl() {
-        this.analysisPasses = List.of(new UndeclaredVariable(), new MethodDecl(), new ArithmeticOperation(), new ArrayAccess(), new AssignmentType(), new ThisReference(), new VarUsageAndDecl(), new Conditions(), new MethodCall());
+        this.analysisPasses = List.of(new UndeclaredVariable(), new MethodDecl(), new MethodCall(), new ArithmeticOperation(), new ArrayAccess(), new AssignmentType(), new ThisReference(), new VarUsageAndDecl(), new Conditions());
     }
 
     @Override
