@@ -95,6 +95,12 @@ public class OllirTest {
         });
     }
 
+    @Test
+    public void compileNIployments(){
+        testJmmCompilation("pt/up/fe/comp/cp2/ollir/CompileNIployments.jmm", (classunit) -> {
+        });
+    }
+
 
     public static void testJmmCompilation(String resource, Consumer<ClassUnit> ollirTester, String executionOutput) {
 

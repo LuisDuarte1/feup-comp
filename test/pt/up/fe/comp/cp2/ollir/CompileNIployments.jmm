@@ -1,0 +1,22 @@
+import imp.Obj;
+import io;
+
+class NIployments {
+
+    public int add(int a, int b){
+        int c;
+        boolean flag;
+        NIployments s;
+        Obj obj;
+        s = new NIployments();
+        obj = new Obj();
+        c = this.test(obj.bloat());
+        return c;
+    }
+
+    public int test(Obj a){
+        return 1;
+    }
+    public static void main(String[] args) {
+    }
+}
