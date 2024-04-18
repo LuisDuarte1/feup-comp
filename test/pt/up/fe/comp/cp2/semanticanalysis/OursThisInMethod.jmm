@@ -1,3 +1,5 @@
+import A;
+
 class ThisInMethod extends A {
 
     public static void main(String[] args) {

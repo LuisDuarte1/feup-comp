@@ -13,6 +13,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 import static pt.up.fe.comp2024.ast.Kind.METHOD;
+import static pt.up.fe.comp2024.ast.Kind.OBJECT_TYPE;
 import static pt.up.fe.comp2024.ast.TypeUtils.*;
 
 /**
@@ -49,7 +50,19 @@ public class VarUsageAndDecl extends AnalysisVisitor {
 
             }
         }
-
+        JmmNode type = varDecl.getChild(0);
+        if (OBJECT_TYPE.check(type)) {
+            if (!table.getImports().contains(type.get("name")) && !Objects.equals(type.get("name"), table.getClassName())) {
+                var message = String.format("Class %s does not exist.", type.get("name"));
+                addReport(Report.newError(
+                        Stage.SEMANTIC,
+                        NodeUtils.getLine(varDecl),
+                        NodeUtils.getColumn(varDecl),
+                        message,
+                        null)
+                );
+            }
+        }
 
         Type varType = getTypeFromGrammarType(varDecl.getChild(0));
         if (varType.hasAttribute("isVarArgs") && varType.getObject("isVarArgs", Boolean.class)) {

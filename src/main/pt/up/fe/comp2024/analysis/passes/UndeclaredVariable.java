@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+import static pt.up.fe.comp2024.ast.Kind.NEW_OBJECT;
 import static pt.up.fe.comp2024.ast.TypeUtils.*;
 
 /**
@@ -70,6 +71,11 @@ public class UndeclaredVariable extends AnalysisVisitor {
         if (table.getImports().stream().anyMatch(importClass -> importClass.equals(varRefName))) {
             varRefExpr.putObject("type", annotateType(new Type("imported", false), table));
             return null;
+        }
+
+        //If this a new object declara
+        if (NEW_OBJECT.check(varRefExpr)) {
+            if (Objects.equals(table.getClassName(), varRefName)) return null;
         }
 
         // Create error report
