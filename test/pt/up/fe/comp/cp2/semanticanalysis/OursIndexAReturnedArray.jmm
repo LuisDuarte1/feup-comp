@@ -1,4 +1,4 @@
-class ReturnArrayAndIndex {
+class IndexAReturnedArray {
 
     public static void main(String[] args) {
 
@@ -11,7 +11,7 @@ class ReturnArrayAndIndex {
 
     public int boo() {
         int a;
-        a = this.foo()[0];
+        this.foo()[0] = a;
         return a;
     }
 
