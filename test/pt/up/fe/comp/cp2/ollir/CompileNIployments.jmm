@@ -11,6 +11,7 @@ class NIployments {
         s = new NIployments();
         obj = new Obj();
         this.test(obj.bloat());
+        obj.test();
         return c;
     }
 

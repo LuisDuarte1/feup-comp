@@ -205,11 +205,11 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         if(THIS_LITERAL.check(node.getJmmChild(0)) && table.getMethods().contains(node.get("name"))
             && type == null){
             var foundReturnType = OptUtils.toOllirType(table.getReturnType(node.get("name")));
-            return methodCallHelper(node, computation, code+foundReturnType, "this",
+            return methodCallHelper(node, computation, code+foundReturnType, "this."+table.getClassName(),
                     foundReturnType, true);
         } else
         if (THIS_LITERAL.check(node.getJmmChild(0))) {
-            return methodCallHelper(node, computation, code+type, "this", type, false);
+            return methodCallHelper(node, computation, code+type, "this."+table.getClassName(), type, false);
         }
         else if (table.getMethods().contains(node.get("name"))){
             var fieldComp = visit(node.getChild(0));
