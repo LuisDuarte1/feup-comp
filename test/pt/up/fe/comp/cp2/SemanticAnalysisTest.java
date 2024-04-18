@@ -76,21 +76,21 @@ public class SemanticAnalysisTest {
     }
 
     @Test
-    public void arrayAccessValid(){
+    public void arrayAccessValid() {
         var result = TestUtils.analyse(SpecsIo.getResource("pt/up/fe/comp/cp2/semanticanalysis/OursArrayAccessValid.jmm"));
         TestUtils.noErrors(result);
         System.out.println(result.getReports());
     }
 
     @Test
-    public void arrayDeclarationValid(){
+    public void arrayDeclarationValid() {
         var result = TestUtils.analyse(SpecsIo.getResource("pt/up/fe/comp/cp2/semanticanalysis/OursArrayDeclarationValid.jmm"));
         TestUtils.noErrors(result);
         System.out.println(result.getReports());
     }
 
     @Test
-    public void arrayDeclarationInvalid(){
+    public void arrayDeclarationInvalid() {
         var result = TestUtils.analyse(SpecsIo.getResource("pt/up/fe/comp/cp2/semanticanalysis/OursArrayDeclarationInvalid.jmm"));
         TestUtils.mustFail(result);
     }
@@ -286,6 +286,13 @@ public class SemanticAnalysisTest {
                 .analyse(SpecsIo.getResource("pt/up/fe/comp/cp2/semanticanalysis/OursThisInMain.jmm"));
         TestUtils.mustFail(result);
         System.out.println(result.getReports());
+    }
+
+    @Test
+    public void thisAsObject() {
+        var result = TestUtils
+                .analyse(SpecsIo.getResource("pt/up/fe/comp/cp2/semanticanalysis/OursThisAsObject.jmm"));
+        TestUtils.noErrors(result);
     }
 
     @Test

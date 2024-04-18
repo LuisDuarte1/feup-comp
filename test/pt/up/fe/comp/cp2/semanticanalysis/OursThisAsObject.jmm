@@ -1,0 +1,16 @@
+class ThisInMethod {
+
+    public static void main(String[] args) {
+
+    }
+
+    public ThisInMethod foo(ThisInMethod b) {
+        ThisInMethod a;
+        a = this;
+        this = a;
+        a = this.foo(this);
+
+
+        return a;
+    }
+}
