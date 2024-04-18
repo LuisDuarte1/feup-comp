@@ -37,11 +37,9 @@ public class JmmAnalysisImpl implements JmmAnalysis {
                 var passReports = analysisPass.analyze(rootNode, table);
                 reports.addAll(passReports);
 
-                if (analysisPass.getClass() == UndeclaredVariable.class) {
-                    if (!reports.isEmpty()) {
-                        System.out.println("Stopping semantic analysis early due to Undeclared Variable.\n");
-                        break;
-                    }
+                if (!reports.isEmpty()) {
+                    System.out.println("Stopping semantic analysis early due to error.\n");
+                    break;
                 }
 
             } catch (Exception e) {
