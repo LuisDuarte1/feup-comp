@@ -228,10 +228,14 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
             return methodCallHelper(node, computation, code+type, "this."+table.getClassName(), type, false);
         }
 
-        var ref = node.getChild(0).get("name");
+        JmmNode refNode = node.getChild(0);
+        while(PRIORITY_EXPR.check(refNode)){
+            refNode = refNode.getChild(0);
+        }
+        String ref = refNode.get("name");
         // it mean it's an class field
         if(table.getFields().stream().anyMatch((value) -> Objects.equals(value.getName(), ref))){
-            var fieldComp = visit(node.getChild(0));
+            var fieldComp = visit(refNode);
             computation.append(fieldComp.getComputation());
             return methodCallHelper(node, computation, code+type, fieldComp.getCode(), type, false);
         }
@@ -266,13 +270,13 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
 
         if(table.getLocalVariables(methodName).stream().anyMatch((val) -> Objects.equals(val.getName(), ref))
             || table.getParameters(methodName).stream().anyMatch((val) -> Objects.equals(val.getName(), ref))){
-            var fieldComp = visit(node.getChild(0));
+            var fieldComp = visit(refNode);
             computation.append(fieldComp.getComputation());
             return methodCallHelper(node, computation, code+type, fieldComp.getCode(), type, false);
         }
 
-        if(!VAR_REF_EXPR.check(node.getChild(0))){
-            var fieldComp = visit(node.getChild(0));
+        if(!VAR_REF_EXPR.check(refNode)){
+            var fieldComp = visit(refNode);
             computation.append(fieldComp.getComputation());
             return methodCallHelper(node, computation, code+type, fieldComp.getCode(), type, false);
         }
