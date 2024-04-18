@@ -1,0 +1,16 @@
+import java.time.Instant;
+class PrazerFactory extends Instant {
+    Instant a;
+
+    public int prazer(){
+      a = new Instant().now();
+      return 1;
+    }
+
+	public static void main(String[] args) {
+        PrazerFactory pf;
+        pf = new PrazerFactory();
+        pf.prazer();
+	}
+
+}

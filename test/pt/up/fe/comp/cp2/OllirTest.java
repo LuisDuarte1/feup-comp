@@ -88,6 +88,13 @@ public class OllirTest {
         });
     }
 
+    @Test
+    public void compilePau(){
+        testJmmCompilation("pt/up/fe/comp/cp2/ollir/CompilePau.jmm", (classunit) -> {
+
+        });
+    }
+
 
     public static void testJmmCompilation(String resource, Consumer<ClassUnit> ollirTester, String executionOutput) {
 

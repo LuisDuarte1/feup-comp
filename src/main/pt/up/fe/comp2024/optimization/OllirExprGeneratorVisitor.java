@@ -228,6 +228,12 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
             return methodCallHelper(node, computation, code+type, fieldComp.getCode(), type);
         }
 
+        if(!VAR_REF_EXPR.check(node.getChild(0))){
+            var fieldComp = visit(node.getChild(0));
+            computation.append(fieldComp.getComputation());
+            return methodCallHelper(node, computation, code+type, fieldComp.getCode(), type);
+        }
+
         if (table.getImports().contains(ref)){
             var children = node.getChildren();
             var arguments =  IntStream.range(0, node.getNumChildren()).skip(1).boxed().toList().stream().map(i -> {
