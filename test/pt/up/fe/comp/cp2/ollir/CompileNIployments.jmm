@@ -10,14 +10,15 @@ class NIployments {
         Obj obj;
         s = new NIployments();
         obj = new Obj();
-        this.test(obj.bloat());
-        obj.test();
+        Obj.print();
+        this.print(obj.bloat());
         return c;
     }
 
-    public int test(Obj a){
-        return a.bloat();
+    public int print(Obj a){
+        return 1;
     }
+
     public static void main(String[] args) {
     }
 }

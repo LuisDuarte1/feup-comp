@@ -211,11 +211,6 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         if (THIS_LITERAL.check(node.getJmmChild(0))) {
             return methodCallHelper(node, computation, code+type, "this."+table.getClassName(), type, false);
         }
-        else if (table.getMethods().contains(node.get("name"))){
-            var fieldComp = visit(node.getChild(0));
-            computation.append(fieldComp.getComputation());
-            return methodCallHelper(node, computation, code+type, fieldComp.getCode(), type, false);
-        }
         var ref = node.getChild(0).get("name");
         // it mean it's an class field
         if(table.getFields().stream().anyMatch((value) -> Objects.equals(value.getName(), ref))){
@@ -290,7 +285,7 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
             var child = children.get(i);
             var argumentReturnType = table.getParametersTry(node.get("name"));
 
-            if (argumentReturnType.isEmpty() && METHOD_CALL.check(child)){
+            if (argumentReturnType.isEmpty() && METHOD_CALL.check(child) ){
                 var childReturnType = table.getReturnType(child.get("name"));
                 return visitForceTemp(child, OptUtils.toOllirType(childReturnType));
             }
