@@ -1,18 +1,14 @@
 import java.time.Instant;
 class PrazerFactory extends Instant {
 
-    public int prazer(){
-   		Instant a;
-        a = Instant.now();
-        a.now();
-        a = this.now();
-        return 1;
+    public int prazer(Instant a){
+        return a.getMilis();
     }
 
 	public static void main(String[] args) {
         PrazerFactory pf;
         pf = new PrazerFactory();
-        pf.prazer();
+        pf.prazer(Instant.now());
 	}
 
 }
