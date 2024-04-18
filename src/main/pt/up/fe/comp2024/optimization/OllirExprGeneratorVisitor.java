@@ -293,9 +293,6 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
             }
             return visit(child);
         }).toList();
-        var object = node
-                .getObject("object", JmmNode.class);
-        var objectType = THIS_LITERAL.check(object) ? "this" : object.getObject("type", Type.class).getName();
         arguments.stream().map(OllirExprResult::getComputation).toList().forEach(computation::append);
         if(type != null){
             computation.append(String.format("%s :=%s invokevirtual(%s, \"%s\"%s)%s;\n",

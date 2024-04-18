@@ -109,7 +109,7 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
 
         if(table.getFields().stream()
                 .anyMatch((val) -> Objects.equals(val.getName(), node.getJmmChild(0).get("name")))){
-            var rhs = exprVisitor.visit(node.getJmmChild(1));
+            var rhs = exprVisitor.visitForceTemp(node.getJmmChild(1), typeString);
             code.append(rhs.getComputation());
 
 
