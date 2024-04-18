@@ -1,5 +1,6 @@
 package pt.up.fe.comp2024.optimization;
 
+import org.specs.comp.ollir.ClassType;
 import pt.up.fe.comp.jmm.analysis.table.SymbolTable;
 import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.ast.JmmNode;
@@ -75,7 +76,7 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
                         arguments.stream().map(OllirExprResult::getCode).reduce("", (a,b) -> a + "," + b)
                         ))
                 .append("\n");
-        return new OllirExprResult(register, computation);
+        return new OllirExprResult(register+"."+name, computation);
     }
 
 
@@ -189,6 +190,11 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         if (table.getMethods().contains(node.get("name")) && THIS_LITERAL.check(node.getJmmChild(0))) {
             return methodCallHelper(node, computation, code+type, "this", type);
         }
+        else if (table.getMethods().contains(node.get("name"))){
+            var fieldComp = visit(node.getChild(0));
+            computation.append(fieldComp.getComputation());
+            return methodCallHelper(node, computation, code+type, fieldComp.getCode(), type);
+        }
         var ref = node.getChild(0).get("name");
         // it mean it's an class field
         if(table.getFields().stream().anyMatch((value) -> Objects.equals(value.getName(), ref))){
@@ -212,7 +218,14 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         }
 
         if (table.getImports().contains(ref)){
-            var arguments = node.getChildren().stream().skip(1).map(this::visit).toList();
+            var arguments = node.getChildren().stream().skip(1).map((child) -> {
+                // we can only infer the type if it's on this class
+                if (METHOD_CALL.check(child) && table.getMethods().contains(child.get("name"))){
+                    var childReturnType = table.getReturnType(child.get("name"));
+                    return visitForceTemp(child, OptUtils.toOllirType(childReturnType));
+                }
+                return visit(child);
+            }).toList();
             arguments.stream().map(OllirExprResult::getComputation).toList().forEach(computation::append);
             if(type != null){
                 computation.append(String.format("%s%s :=%s invokestatic(%s, \"%s\"%s)%s;\n",
@@ -234,7 +247,14 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
 
     private OllirExprResult methodCallHelper(JmmNode node, StringBuilder computation, String code, String className,
                                              String type) {
-        var arguments = node.getChildren().stream().skip(1).map(this::visit).toList();
+        var arguments = node.getChildren().stream().skip(1).map((child) -> {
+            // we can only infer the type if it's on this class
+            if (METHOD_CALL.check(child) && table.getMethods().contains(child.get("name"))){
+                var childReturnType = table.getReturnType(child.get("name"));
+                return visitForceTemp(child, OptUtils.toOllirType(childReturnType));
+            }
+            return visit(child);
+        }).toList();
         var object = node
                 .getObject("object", JmmNode.class);
         var objectType = THIS_LITERAL.check(object) ? "this" : object.getObject("type", Type.class).getName();

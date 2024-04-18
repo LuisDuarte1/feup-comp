@@ -46,6 +46,14 @@ public class OllirTest {
     }
 
     @Test
+    public void compileFacTest(){
+        testJmmCompilation("pt/up/fe/comp/cp2/ollir/FacTest.jmm", (classunit) -> {
+
+        });
+
+    }
+
+    @Test
     public void compileInstantWithField(){
         testJmmCompilation("pt/up/fe/comp/cp2/ollir/CompileInstantWithFields.jmm", (classunit) -> {
 

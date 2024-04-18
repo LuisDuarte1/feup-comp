@@ -34,7 +34,10 @@ public class NewObject extends AnalysisVisitor {
             return null;
         }
 
-        if (Objects.equals(table.getClassName(), className)) return null;
+        if (Objects.equals(table.getClassName(), className)) {
+            newObject.putObject("type", annotateType(new Type(className, false), table));
+            return null;
+        }
 
         // Create error report
         var message = String.format("Class '%s' does not exist.", className);
