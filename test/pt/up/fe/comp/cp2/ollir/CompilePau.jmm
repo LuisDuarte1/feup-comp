@@ -3,7 +3,7 @@ class PrazerFactory extends Instant {
     Instant a;
 
     public int prazer(){
-      a = new Instant().now();
+      a.now(this);
       return 1;
     }
 

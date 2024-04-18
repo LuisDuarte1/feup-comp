@@ -38,7 +38,12 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         addVisit(UNARY_EXPR, this::visitUnaryExpr);
         addVisit(METHOD_CALL, this::visitMethodCall);
         addVisit(NEW_OBJECT, this::visitNewObject);
+        addVisit(THIS_LITERAL, this::visitThis);
         setDefaultVisit(this::defaultVisit);
+    }
+
+    public OllirExprResult visitThis(JmmNode node, Void unused){
+        return new OllirExprResult("this."+table.getClassName());
     }
 
     public OllirExprResult visitBool(JmmNode node, Void unused){
