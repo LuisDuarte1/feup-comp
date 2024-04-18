@@ -202,20 +202,26 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         var computation = new StringBuilder();
         String code = OptUtils.getTemp();
         String type = getTypeFromParent(node);
+        if(THIS_LITERAL.check(node.getJmmChild(0)) && table.getMethods().contains(node.get("name"))
+            && type == null){
+            var foundReturnType = OptUtils.toOllirType(table.getReturnType(node.get("name")));
+            return methodCallHelper(node, computation, code+foundReturnType, "this",
+                    foundReturnType, true);
+        } else
         if (THIS_LITERAL.check(node.getJmmChild(0))) {
-            return methodCallHelper(node, computation, code+type, "this", type);
+            return methodCallHelper(node, computation, code+type, "this", type, false);
         }
         else if (table.getMethods().contains(node.get("name"))){
             var fieldComp = visit(node.getChild(0));
             computation.append(fieldComp.getComputation());
-            return methodCallHelper(node, computation, code+type, fieldComp.getCode(), type);
+            return methodCallHelper(node, computation, code+type, fieldComp.getCode(), type, false);
         }
         var ref = node.getChild(0).get("name");
         // it mean it's an class field
         if(table.getFields().stream().anyMatch((value) -> Objects.equals(value.getName(), ref))){
             var fieldComp = visit(node.getChild(0));
             computation.append(fieldComp.getComputation());
-            return methodCallHelper(node, computation, code+type, fieldComp.getCode(), type);
+            return methodCallHelper(node, computation, code+type, fieldComp.getCode(), type, false);
         }
 
         //we then check if it belongs to a local variable
@@ -230,13 +236,13 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
             || table.getParameters(methodName).stream().anyMatch((val) -> Objects.equals(val.getName(), ref))){
             var fieldComp = visit(node.getChild(0));
             computation.append(fieldComp.getComputation());
-            return methodCallHelper(node, computation, code+type, fieldComp.getCode(), type);
+            return methodCallHelper(node, computation, code+type, fieldComp.getCode(), type, false);
         }
 
         if(!VAR_REF_EXPR.check(node.getChild(0))){
             var fieldComp = visit(node.getChild(0));
             computation.append(fieldComp.getComputation());
-            return methodCallHelper(node, computation, code+type, fieldComp.getCode(), type);
+            return methodCallHelper(node, computation, code+type, fieldComp.getCode(), type, false);
         }
 
         if (table.getImports().contains(ref)){
@@ -277,7 +283,7 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
     }
 
     private OllirExprResult methodCallHelper(JmmNode node, StringBuilder computation, String code, String className,
-                                             String type) {
+                                             String type, boolean forceNoType) {
         var children = node.getChildren();
         var arguments =  IntStream.range(0, node.getNumChildren()).skip(1).boxed().toList().stream().map(i -> {
             // we can only infer the type if it's on this class
@@ -294,7 +300,7 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
             return visit(child);
         }).toList();
         arguments.stream().map(OllirExprResult::getComputation).toList().forEach(computation::append);
-        if(type != null){
+        if(type != null && !forceNoType){
             computation.append(String.format("%s :=%s invokevirtual(%s, \"%s\"%s)%s;\n",
                     code, type,
                     className,
@@ -303,10 +309,12 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
                     type
             ));
         } else {
-            code = String.format("invokevirtual(%s, \"%s\"%s).V",
+            code = String.format("invokevirtual(%s, \"%s\"%s)%s",
                     className,
                     node.get("name"),
-                    arguments.stream().map(OllirExprResult::getCode).reduce("", (a,b) -> a + "," + b));
+                    arguments.stream().map(OllirExprResult::getCode).reduce("", (a,b) -> a + "," + b),
+                    type != null ? type : ".V"
+            );
         }
         return new OllirExprResult(code, computation.toString());
     }

@@ -10,12 +10,12 @@ class NIployments {
         Obj obj;
         s = new NIployments();
         obj = new Obj();
-        c = this.test(obj.bloat());
+        this.test(obj.bloat());
         return c;
     }
 
     public int test(Obj a){
-        return 1;
+        return a.bloat();
     }
     public static void main(String[] args) {
     }
