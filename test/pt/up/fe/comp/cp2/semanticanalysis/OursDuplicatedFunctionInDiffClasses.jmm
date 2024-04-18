@@ -1,0 +1,19 @@
+import io;
+
+class DuplicatedFunctionInDiffClasses {
+
+    public static void main(String[] args) {
+
+    }
+
+    public int print(){
+        return 1;
+    }
+
+    public int foo() {
+        int a;
+        this.print();
+        io.print();
+        return a;
+    }
+}
