@@ -79,7 +79,13 @@ public class OllirTest {
         testJmmCompilation("pt/up/fe/comp/cp2/ollir/CompileInstantWithFields.jmm", (classunit) -> {
 
         });
+    }
 
+    @Test
+    public void compileTronco(){
+        testJmmCompilation("pt/up/fe/comp/cp2/ollir/CompileTronco.jmm", (classunit) -> {
+
+        });
     }
 
 

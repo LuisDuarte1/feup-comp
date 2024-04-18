@@ -195,7 +195,7 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         var computation = new StringBuilder();
         String code = OptUtils.getTemp();
         String type = getTypeFromParent(node);
-        if (table.getMethods().contains(node.get("name")) && THIS_LITERAL.check(node.getJmmChild(0))) {
+        if (THIS_LITERAL.check(node.getJmmChild(0))) {
             return methodCallHelper(node, computation, code+type, "this", type);
         }
         else if (table.getMethods().contains(node.get("name"))){
