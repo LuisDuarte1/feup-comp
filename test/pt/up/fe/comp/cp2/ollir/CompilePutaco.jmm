@@ -1,0 +1,25 @@
+import java.time.Instant;
+import pt.up.fe.ni.uni.Prazer;
+class PutacoFactory extends Instant {
+    Instant a;
+
+    public int lmao(int b){
+        return b*2;
+    }
+
+    public int prazer(Instant aa, Prazer b, Prazer c, int d, int e, boolean f, boolean g){
+      a = new Instant().now();
+      a.now(this);
+      this.prazer2(a);
+      return 1;
+    }
+
+	public static void main(String[] args) {
+        PutacoFactory pf;
+        int b;
+        pf = new PutacoFactory();
+        pf.prazer(new Instant(), new Prazer(), Prazer.create(),
+            (2+5+6+7*5), (pf.lmao(b)+2)*5, 5 < 4, !(5 < 5));
+	}
+
+}

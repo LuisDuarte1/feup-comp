@@ -9,6 +9,8 @@ import pt.up.fe.comp2024.analysis.AnalysisVisitor;
 import pt.up.fe.comp2024.ast.Kind;
 import pt.up.fe.comp2024.ast.NodeUtils;
 
+import java.util.Objects;
+
 import static pt.up.fe.comp2024.ast.TypeUtils.getExprType;
 
 /**
@@ -39,16 +41,17 @@ public class ArithmeticOperation extends AnalysisVisitor {
         JmmNode expr2 = binaryExpr.getChild(1);
 
         Type opType = getExprType(binaryExpr, table);
+        var op = binaryExpr.get("op");
         binaryExpr.putObject("type", opType);
 
 
         Type typeExpr1 = getExprType(expr1, table);
-        if (!typeExpr1.equals(opType)) {
+        if (!typeExpr1.equals(opType) && !(Objects.equals(op, "<") && typeExpr1.getName().equals("int"))) {
             createErrorReport(binaryExpr, expr1, typeExpr1, binaryExpr.get("op"));
         }
 
         Type typeExpr2 = getExprType(expr2, table);
-        if (!typeExpr2.equals(opType)) {
+        if (!typeExpr2.equals(opType) && !(Objects.equals(op, "<") && typeExpr2.getName().equals("int"))) {
             createErrorReport(binaryExpr, expr2, typeExpr2, binaryExpr.get("op"));
         }
 

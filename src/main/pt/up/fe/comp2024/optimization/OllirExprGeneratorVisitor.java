@@ -39,7 +39,12 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         addVisit(METHOD_CALL, this::visitMethodCall);
         addVisit(NEW_OBJECT, this::visitNewObject);
         addVisit(THIS_LITERAL, this::visitThis);
+        addVisit(PRIORITY_EXPR, this::visitPriorityExpr);
         setDefaultVisit(this::defaultVisit);
+    }
+
+    public OllirExprResult visitPriorityExpr(JmmNode node, Void unused){
+        return visit(node.getChild(0));
     }
 
     public OllirExprResult visitThis(JmmNode node, Void unused){
@@ -96,12 +101,21 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
 
 
     protected OllirExprResult visitUnaryExpr(JmmNode node, Void unused){
+        String register = OptUtils.getTemp();
 
-        String code = node.get("op") +
-                // TODO (luisd): Maybe throw if there are multiple children?
-                node.getJmmChild(0);
+        var computation = new StringBuilder();
+        var insideContent = visit(node.getJmmChild(0));
+        Type resType = TypeUtils.getExprType(node, table);
+        String resOllirType = OptUtils.toOllirType(resType);
 
-        return new OllirExprResult(code);
+        computation.append(insideContent.getComputation());
+        computation.append(
+                String.format("%s%s :=%s %s%s %s;",
+                        register, resOllirType, resOllirType, node.get("op"), resOllirType, insideContent.getCode()
+                ))
+                .append("\n");
+
+        return new OllirExprResult(register+resOllirType, computation);
 
     }
 
