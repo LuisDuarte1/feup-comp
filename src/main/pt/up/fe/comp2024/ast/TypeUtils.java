@@ -79,8 +79,9 @@ public class TypeUtils {
                         yield localType;
                     } else {
                         var object = expr.getObject("object", JmmNode.class);
-                        if (table.getImports().contains(getExprType(object, table).getName()) ||
-                                Objects.equals(getExprType(object, table).getName(), "imported")) //Class of the method is imported
+                        var objectTypeName = getExprType(object, table).getName();
+                        if (table.getImports().contains(objectTypeName) ||
+                                Objects.equals(objectTypeName, "imported") || (Objects.equals(table.getClassName(), objectTypeName) && table.getSuper() != null)) //Class of the method is imported
                         {
                             yield new Type("imported", false);
                         }
@@ -218,7 +219,7 @@ public class TypeUtils {
             }
         }
 
-        if(table.getImports().contains(varRefName)) return IMPORTS;
+        if (table.getImports().contains(varRefName)) return IMPORTS;
 
         throw new RuntimeException("Could not access " + varRefExpr + " parent method or class");
     }

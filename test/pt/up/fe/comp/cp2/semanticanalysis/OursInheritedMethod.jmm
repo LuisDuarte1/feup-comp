@@ -1,0 +1,13 @@
+import A;
+
+class AssignIntToBool extends A{
+
+    public static void main(String[] args) {
+
+    }
+
+    public boolean foo() {
+        AssignIntToBool a;
+        return a.boo();
+    }
+}

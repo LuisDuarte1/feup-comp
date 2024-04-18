@@ -103,6 +103,12 @@ public class SemanticAnalysisTest {
     }
 
     @Test
+    public void inheritedMethod() {
+        var result = TestUtils.analyse(SpecsIo.getResource("pt/up/fe/comp/cp2/semanticanalysis/OursInheritedMethod.jmm"));
+        TestUtils.noErrors(result);
+    }
+
+    @Test
     public void objectAssignmentFail() {
         var result = TestUtils.analyse(SpecsIo.getResource("pt/up/fe/comp/cp2/semanticanalysis/ObjectAssignmentFail.jmm"));
         System.out.println(result.getReports());
