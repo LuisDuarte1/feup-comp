@@ -74,7 +74,11 @@ public class JasminGenerator {
         var code = new StringBuilder();
         switch (callInstruction.getInvocationType()){
             case NEW -> {
-                code.append(String.format("new %s", ((ClassType) callInstruction.getReturnType()).getName())).append(NL);
+                var classType = (ClassType) callInstruction.getReturnType();
+                var className = currentMethod.getOllirClass().getImports().stream()
+                        .filter(((val) -> val.endsWith(classType.getName())))
+                        .findFirst().orElse(classType.getName()).replace(".", "/");
+                code.append(String.format("new %s", (classType.getName()))).append(NL);
                 code.append("dup").append(NL);
             }
             case invokespecial -> {
@@ -211,7 +215,13 @@ public class JasminGenerator {
         code.append(".class ").append(className).append(NL).append(NL);
 
         // TODO: Hardcoded to Object, needs to be expanded
-        code.append(".super java/lang/Object").append(NL);
+        var superClassName = !(Objects.equals(classUnit.getSuperClass(), "Object") || classUnit.getSuperClass() == null) ?
+                classUnit.getImports().stream()
+                        .filter((val) -> val.endsWith(classUnit.getSuperClass()))
+                        .findFirst().orElse(classUnit.getSuperClass())
+                        .replace(".", "/")
+                : "java/lang/Object";
+        code.append(String.format(".super %s", superClassName)).append(NL);
 
         ollirResult.getOllirClass().getFields()
                 .stream().map((val) -> String.format(".field %s %s %s\n",
@@ -222,14 +232,14 @@ public class JasminGenerator {
                 .toList().forEach(code::append);
 
         // generate a single constructor method
-        var defaultConstructor = """
+        var defaultConstructor = String.format("""
                 ;default constructor
                 .method public <init>()V
                     aload_0
-                    invokespecial java/lang/Object/<init>()V
+                    invokespecial %s/<init>()V
                     return
                 .end method
-                """;
+                """, superClassName);
         code.append(defaultConstructor);
 
         // generate code for all other methods
@@ -301,8 +311,9 @@ public class JasminGenerator {
 
             if(inst instanceof CallInstruction){
                 var funcReturnType = ((CallInstruction) inst).getReturnType().getTypeOfElement();
-                if(!method.isConstructMethod() && !(funcReturnType == ElementType.VOID)){
-                    code.append("pop").append(NL);
+                var callType = ((CallInstruction) inst).getInvocationType();
+                if(!method.isConstructMethod() && (!(funcReturnType == ElementType.VOID) || callType == CallType.invokespecial)){
+                    code.append(TAB).append("pop").append(NL);
                 }
             }
 
@@ -401,7 +412,7 @@ public class JasminGenerator {
                 code.append(generators.apply(returnInst.getOperand()));
                 code.append("ireturn");
             }
-            case CLASS -> {
+            case CLASS, OBJECTREF -> {
                 code.append(generators.apply(returnInst.getOperand()));
                 code.append("areturn");
             }
