@@ -61,8 +61,11 @@ public class MethodCall extends AnalysisVisitor {
 
             boolean flag = true;
 
-            for (int i = 0; i < numNonVarargsParams; i++)
+            for (int i = 0; i < numNonVarargsParams; i++){
+                if(Objects.equals(getExprType(memberCall.getChild(i + 1), table).getName(), "imported")) continue;
+                if(Objects.equals(params.get(i).getType().getName(), "imported")) continue;
                 flag &= params.get(i).getType().equals(TypeUtils.getExprType(memberCall.getChild(i + 1), table));
+            }
             if (hasVarargs) {
                 Type firstVarargsParamType = TypeUtils.getExprType(memberCall.getChild(numNonVarargsParams + 1), table);
                 if (firstVarargsParamType.equals(new Type("int", true))) {

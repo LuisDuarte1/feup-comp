@@ -80,13 +80,15 @@ public class TypeUtils {
                     } else {
                         var object = expr.getObject("object", JmmNode.class);
                         var objectTypeName = getExprType(object, table).getName();
+
                         if (table.getImports().contains(objectTypeName) ||
                                 Objects.equals(objectTypeName, "imported") || (Objects.equals(table.getClassName(), objectTypeName) && table.getSuper() != null)) //Class of the method is imported
                         {
                             yield new Type("imported", false);
                         }
                     }
-                    throw new UnsupportedOperationException("Can't compute type for expression kind '" + kind + "'");
+                    throw new UnsupportedOperationException("Can't compute type for expression kind '"
+                            + kind + "'" + " " + expr.get("name"));
                 }
                 case NEW_OBJECT -> annotateType(new Type(expr.get("name"), false), table);
                 case NEW_ARRAY, ARRAY -> new Type(INT_TYPE_NAME, true);

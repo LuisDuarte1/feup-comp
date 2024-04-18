@@ -7,8 +7,10 @@ import pt.up.fe.comp.jmm.ast.JmmNode;
 import pt.up.fe.comp.jmm.ast.PreorderJmmVisitor;
 import pt.up.fe.comp2024.ast.TypeUtils;
 
+import java.util.Collections;
 import java.util.Objects;
 import java.util.regex.Pattern;
+import java.util.stream.IntStream;
 
 import static pt.up.fe.comp2024.ast.Kind.*;
 
@@ -32,12 +34,23 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         addVisit(VAR_REF_EXPR, this::visitVarRef);
         addVisit(BINARY_EXPR, this::visitBinExpr);
         addVisit(INTEGER_LITERAL, this::visitInteger);
+        addVisit(BOOLEAN_LITERAL, this::visitBool);
         addVisit(UNARY_EXPR, this::visitUnaryExpr);
         addVisit(METHOD_CALL, this::visitMethodCall);
         addVisit(NEW_OBJECT, this::visitNewObject);
+        addVisit(THIS_LITERAL, this::visitThis);
         setDefaultVisit(this::defaultVisit);
     }
 
+    public OllirExprResult visitThis(JmmNode node, Void unused){
+        return new OllirExprResult("this."+table.getClassName());
+    }
+
+    public OllirExprResult visitBool(JmmNode node, Void unused){
+        return new OllirExprResult(
+                (Objects.equals(node.get("value"), "true") ? "1" : "0")
+                        +".bool");
+    }
     public OllirExprResult visitForceTemp(JmmNode node, String type){
         var computation = new StringBuilder();
         String register = OptUtils.getTemp();
@@ -47,7 +60,9 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
 
         final Pattern pattern = Pattern.compile("(.*)(\\.[a-z0-9A-Z]*)");
         var matcher = pattern.matcher(nodeComp.getCode());
-        if(!matcher.find()) throw new RuntimeException("Could find match for returned code");
+        if(!matcher.find()){
+            return nodeComp;
+        }
         var returnedRegister = matcher.group(1);
 
         computation.append(String.format("%s%s :=%s %s%s;",
@@ -187,7 +202,7 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         var computation = new StringBuilder();
         String code = OptUtils.getTemp();
         String type = getTypeFromParent(node);
-        if (table.getMethods().contains(node.get("name")) && THIS_LITERAL.check(node.getJmmChild(0))) {
+        if (THIS_LITERAL.check(node.getJmmChild(0))) {
             return methodCallHelper(node, computation, code+type, "this", type);
         }
         else if (table.getMethods().contains(node.get("name"))){
@@ -211,21 +226,36 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         }
         methodName = currNode.get("name");
 
-        if(table.getLocalVariables(methodName).stream().anyMatch((val) -> Objects.equals(val.getName(), ref))){
+        if(table.getLocalVariables(methodName).stream().anyMatch((val) -> Objects.equals(val.getName(), ref))
+            || table.getParameters(methodName).stream().anyMatch((val) -> Objects.equals(val.getName(), ref))){
+            var fieldComp = visit(node.getChild(0));
+            computation.append(fieldComp.getComputation());
+            return methodCallHelper(node, computation, code+type, fieldComp.getCode(), type);
+        }
+
+        if(!VAR_REF_EXPR.check(node.getChild(0))){
             var fieldComp = visit(node.getChild(0));
             computation.append(fieldComp.getComputation());
             return methodCallHelper(node, computation, code+type, fieldComp.getCode(), type);
         }
 
         if (table.getImports().contains(ref)){
-            var arguments = node.getChildren().stream().skip(1).map((child) -> {
+            var children = node.getChildren();
+            var arguments =  IntStream.range(0, node.getNumChildren()).skip(1).boxed().toList().stream().map(i -> {
                 // we can only infer the type if it's on this class
-                if (METHOD_CALL.check(child) && table.getMethods().contains(child.get("name"))){
+                var child = children.get(i);
+                var argumentReturnType = table.getParametersTry(node.get("name"));
+
+                if (argumentReturnType.isEmpty() && METHOD_CALL.check(child)){
                     var childReturnType = table.getReturnType(child.get("name"));
                     return visitForceTemp(child, OptUtils.toOllirType(childReturnType));
                 }
-                return visit(child);
+                if (argumentReturnType.isPresent() && METHOD_CALL.check(child)) {
+                    return visitForceTemp(child, OptUtils.toOllirType(argumentReturnType.get().get(i-1).getType()));
+                }
+               return visit(child);
             }).toList();
+
             arguments.stream().map(OllirExprResult::getComputation).toList().forEach(computation::append);
             if(type != null){
                 computation.append(String.format("%s%s :=%s invokestatic(%s, \"%s\"%s)%s;\n",
@@ -235,6 +265,7 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
                         arguments.stream().map(OllirExprResult::getCode).reduce("", (a,b) -> a + "," + b),
                         type
                 ));
+                code += type;
             } else {
                 code = String.format("invokestatic(%s, \"%s\"%s).V",
                         ref,
@@ -247,21 +278,25 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
 
     private OllirExprResult methodCallHelper(JmmNode node, StringBuilder computation, String code, String className,
                                              String type) {
-        var arguments = node.getChildren().stream().skip(1).map((child) -> {
+        var children = node.getChildren();
+        var arguments =  IntStream.range(0, node.getNumChildren()).skip(1).boxed().toList().stream().map(i -> {
             // we can only infer the type if it's on this class
-            if (METHOD_CALL.check(child) && table.getMethods().contains(child.get("name"))){
+            var child = children.get(i);
+            var argumentReturnType = table.getParametersTry(node.get("name"));
+
+            if (argumentReturnType.isEmpty() && METHOD_CALL.check(child)){
                 var childReturnType = table.getReturnType(child.get("name"));
                 return visitForceTemp(child, OptUtils.toOllirType(childReturnType));
             }
+            if (argumentReturnType.isPresent() && METHOD_CALL.check(child)) {
+                return visitForceTemp(child, OptUtils.toOllirType(argumentReturnType.get().get(i-1).getType()));
+            }
             return visit(child);
         }).toList();
-        var object = node
-                .getObject("object", JmmNode.class);
-        var objectType = THIS_LITERAL.check(object) ? "this" : object.getObject("type", Type.class).getName();
         arguments.stream().map(OllirExprResult::getComputation).toList().forEach(computation::append);
         if(type != null){
-            computation.append(String.format("%s%s :=%s invokevirtual(%s, \"%s\"%s)%s;\n",
-                    code, type, type,
+            computation.append(String.format("%s :=%s invokevirtual(%s, \"%s\"%s)%s;\n",
+                    code, type,
                     className,
                     node.get("name"),
                     arguments.stream().map(OllirExprResult::getCode).reduce("", (a,b) -> a + "," + b),

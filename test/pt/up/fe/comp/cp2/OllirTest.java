@@ -48,17 +48,57 @@ public class OllirTest {
     @Test
     public void compileFacTest(){
         testJmmCompilation("pt/up/fe/comp/cp2/ollir/FacTest.jmm", (classunit) -> {
-
         });
 
     }
+
+    @Test
+    public void compileInstantWithFields(){
+        testJmmCompilation("pt/up/fe/comp/cp2/ollir/CompileInstantWithFields.jmm", (classunit) -> {
+        });
+
+    }
+
+    @Test
+    public void compileInstantWithMethodClass(){
+        testJmmCompilation("pt/up/fe/comp/cp2/ollir/CompileInstantWithMethodClass.jmm", (classunit) -> {
+        });
+
+    }
+
+    @Test
+    public void compileBooleanMethodDecl(){
+        testJmmCompilation("pt/up/fe/comp/cp2/ollir/BooleanMethodDecl.jmm", (classunit) -> {
+        });
+
+    }
+
 
     @Test
     public void compileInstantWithField(){
         testJmmCompilation("pt/up/fe/comp/cp2/ollir/CompileInstantWithFields.jmm", (classunit) -> {
 
         });
+    }
 
+    @Test
+    public void compileTronco(){
+        testJmmCompilation("pt/up/fe/comp/cp2/ollir/CompileTronco.jmm", (classunit) -> {
+
+        });
+    }
+
+    @Test
+    public void compilePau(){
+        testJmmCompilation("pt/up/fe/comp/cp2/ollir/CompilePau.jmm", (classunit) -> {
+
+        });
+    }
+
+    @Test
+    public void compileNIployments(){
+        testJmmCompilation("pt/up/fe/comp/cp2/ollir/CompileNIployments.jmm", (classunit) -> {
+        });
     }
 
 

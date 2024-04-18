@@ -1,14 +1,18 @@
 import java.time.Instant;
 class PrazerFactory {
         Instant b;
+        int c;
+        Instant d;
 
         public int useTime(){
+           c = 10;
+           d = Instant.now();
            return b.getMilis();
         }
 
 	public static void main(String[] args) {
 		Instant a;
-                a = Instant.now();
+        a = Instant.now();
 	}
 
 }
