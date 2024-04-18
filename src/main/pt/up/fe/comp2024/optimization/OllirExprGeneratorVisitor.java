@@ -269,8 +269,8 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         var objectType = THIS_LITERAL.check(object) ? "this" : object.getObject("type", Type.class).getName();
         arguments.stream().map(OllirExprResult::getComputation).toList().forEach(computation::append);
         if(type != null){
-            computation.append(String.format("%s%s :=%s invokevirtual(%s, \"%s\"%s)%s;\n",
-                    code, type, type,
+            computation.append(String.format("%s :=%s invokevirtual(%s, \"%s\"%s)%s;\n",
+                    code, type,
                     className,
                     node.get("name"),
                     arguments.stream().map(OllirExprResult::getCode).reduce("", (a,b) -> a + "," + b),

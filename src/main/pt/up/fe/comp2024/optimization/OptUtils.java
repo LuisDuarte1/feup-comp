@@ -9,6 +9,7 @@ import pt.up.fe.specs.util.exceptions.NotImplementedException;
 import java.util.List;
 import java.util.Optional;
 
+import static pt.up.fe.comp2024.ast.Kind.OBJECT_TYPE;
 import static pt.up.fe.comp2024.ast.Kind.VAR_DECL;
 
 //import static pt.up.fe.comp2024.ast.Kind.TYPE;
@@ -36,8 +37,10 @@ public class OptUtils {
 
         //TODO: Check this
         //TYPE.checkOrThrow(typeNode);
-
         String typeName = typeNode.getKind();
+        if (OBJECT_TYPE.check(typeNode)){
+            typeName = typeNode.get("name");
+        }
 
         return toOllirType(typeName);
     }

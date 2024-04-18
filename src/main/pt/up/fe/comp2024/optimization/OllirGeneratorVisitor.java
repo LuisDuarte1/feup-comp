@@ -111,7 +111,7 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
                 .anyMatch((val) -> Objects.equals(val.getName(), node.getJmmChild(0).get("name")))){
             var rhs = exprVisitor.visit(node.getJmmChild(1));
             code.append(rhs.getComputation());
-            
+
 
             code.append(String.format(
                     "putfield(this, %s%s, %s).V",
@@ -198,7 +198,7 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         code.append("(" + paramCode + ")");
 
         // type
-        var retType = OptUtils.toOllirType(node.get("returnType"));
+        var retType = OptUtils.toOllirType(node.getObject("returnType", JmmNode.class));
         code.append(retType);
         code.append(L_BRACKET);
 

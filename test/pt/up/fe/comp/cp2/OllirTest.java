@@ -60,6 +60,13 @@ public class OllirTest {
     }
 
     @Test
+    public void compileInstantWithMethodClass(){
+        testJmmCompilation("pt/up/fe/comp/cp2/ollir/CompileInstantWithMethodClass.jmm", (classunit) -> {
+        });
+
+    }
+
+    @Test
     public void compileBooleanMethodDecl(){
         testJmmCompilation("pt/up/fe/comp/cp2/ollir/BooleanMethodDecl.jmm", (classunit) -> {
         });

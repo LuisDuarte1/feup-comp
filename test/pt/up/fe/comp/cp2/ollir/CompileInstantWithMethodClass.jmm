@@ -1,0 +1,16 @@
+import java.time.Instant;
+class PrazerFactory {
+
+        public Instant useTime(Instant c){
+            return c;
+        }
+
+	public static void main(String[] args) {
+		Instant a;
+        PrazerFactory p;
+        a = Instant.now();
+        p = new PrazerFactory();
+        a = p.useTime(a);
+	}
+
+}
