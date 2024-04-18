@@ -54,7 +54,7 @@ public class ArithmeticOperation extends AnalysisVisitor {
 
         Type typeExpr2 = getExprType(expr2, table);
         if (!typeExpr2.equals(opType) && !(Objects.equals(op, "<") && typeExpr2.getName().equals("int")) &&
-                !typeExpr1.getName().equals("imported")) {
+                !typeExpr2.getName().equals("imported")) {
             createErrorReport(binaryExpr, expr2, typeExpr2, binaryExpr.get("op"));
         }
 
