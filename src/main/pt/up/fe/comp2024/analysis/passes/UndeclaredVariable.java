@@ -46,10 +46,10 @@ public class UndeclaredVariable extends AnalysisVisitor {
         // Check if exists a parameter or variable declaration with the same name as the variable reference
         var varRefName = varRefExpr.get("name");
 
-        // Var is a field, return
-        Optional<Symbol> field = table.getFields().stream().filter(param -> param.getName().equals(varRefName)).findFirst();
-        if (field.isPresent()) {
-            varRefExpr.putObject("type", annotateType(field.get().getType(), table));
+        // Var is a declared variable, return
+        Optional<Symbol> variable = table.getLocalVariables(currentMethod).stream().filter(varDecl -> varDecl.getName().equals(varRefName)).findFirst();
+        if (variable.isPresent()) {
+            varRefExpr.putObject("type", annotateType(variable.get().getType(), table));
             return null;
         }
 
@@ -60,10 +60,10 @@ public class UndeclaredVariable extends AnalysisVisitor {
             return null;
         }
 
-        // Var is a declared variable, return
-        Optional<Symbol> variable = table.getLocalVariables(currentMethod).stream().filter(varDecl -> varDecl.getName().equals(varRefName)).findFirst();
-        if (variable.isPresent()) {
-            varRefExpr.putObject("type", annotateType(variable.get().getType(), table));
+        // Var is a field, return
+        Optional<Symbol> field = table.getFields().stream().filter(param -> param.getName().equals(varRefName)).findFirst();
+        if (field.isPresent()) {
+            varRefExpr.putObject("type", annotateType(field.get().getType(), table));
             return null;
         }
 

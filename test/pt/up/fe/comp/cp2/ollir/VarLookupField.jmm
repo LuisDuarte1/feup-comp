@@ -2,19 +2,26 @@ import io;
 
 class Simple {
     int a;
+    int b;
 
-     public int arithmetic(){
-        io.println(a);
-        return a;
+     public int arithmetic(int x, boolean y){
+        int a;
+        boolean b;
+        a = 3;
+        b = y;
+        x = a;
+        io.println(y);
+        return x;
     }
 
 
     public static void main(String[] args){
         Simple s;
         int b;
-        int a;
-        a = 100;
+        boolean c;
+        b = 5;
+        c = false;
         s = new Simple();
-        s.arithmetic();
+        s.arithmetic(b, c);
     }
 }
