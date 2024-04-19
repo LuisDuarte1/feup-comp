@@ -107,8 +107,8 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         Type thisType = TypeUtils.getExprType(node.getJmmChild(0), table);
         String typeString = OptUtils.toOllirType(thisType);
 
-        if(table.getFields().stream()
-                .anyMatch((val) -> Objects.equals(val.getName(), node.getJmmChild(0).get("name")))){
+        String origin = TypeUtils.getVarExprOrigin(node.getJmmChild(0), table);
+        if(Objects.equals(origin, TypeUtils.FIELD)){
             var rhs = exprVisitor.visitForceTemp(node.getJmmChild(1), typeString);
             code.append(rhs.getComputation());
 

@@ -4,6 +4,7 @@ class Simple {
     int a;
 
      public int arithmetic(int a){
+     a = 100;
         io.println(a);
         return 0;
     }
@@ -13,7 +14,7 @@ class Simple {
         Simple s;
         int b;
         s = new Simple();
-        b = s.arithmetic(100);
+        b = s.arithmetic(200);
     }
 
 
