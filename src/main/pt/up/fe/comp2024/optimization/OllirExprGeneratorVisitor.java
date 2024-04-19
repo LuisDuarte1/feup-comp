@@ -166,7 +166,7 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
 
         String code = id + ollirType;
 
-        if (table.getFields().stream().anyMatch((val) -> Objects.equals(val.getName(), id))){
+        if (Objects.equals(TypeUtils.getVarExprOrigin(node, table), TypeUtils.FIELD)){
             var fieldTmp = OptUtils.getTemp();
 
             computation.append(String.format(

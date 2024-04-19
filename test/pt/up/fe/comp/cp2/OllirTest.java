@@ -113,6 +113,12 @@ public class OllirTest {
         });
     }
 
+    @Test
+    public void compileVarLookupField(){
+        testJmmCompilation("pt/up/fe/comp/cp2/ollir/VarLookupField.jmm", (classunit) -> {
+        });
+    }
+
     public static void testJmmCompilation(String resource, Consumer<ClassUnit> ollirTester, String executionOutput) {
 
         // If AstToJasmin pipeline, generate Jasmin

@@ -73,7 +73,7 @@ public class UndeclaredVariable extends AnalysisVisitor {
             return null;
         }
 
-        //If this a new object declara
+        //If this a new object declaration
         if (NEW_OBJECT.check(varRefExpr)) {
             if (Objects.equals(table.getClassName(), varRefName)) return null;
         }
