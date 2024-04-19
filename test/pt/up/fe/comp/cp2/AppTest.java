@@ -43,6 +43,6 @@ public class AppTest {
         var jasminResult = TestUtils.backend(code, Collections.emptyMap());
         System.out.println(jasminResult.getJasminCode());
         var result = TestUtils.runJasmin(jasminResult.getJasminCode(), Collections.emptyMap());
-        assertEquals("200", result.strip());
+        assertEquals("0", result.strip());
     }
 }

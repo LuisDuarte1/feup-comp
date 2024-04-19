@@ -3,16 +3,9 @@ import io;
 class Simple {
     int a;
 
-     public int arithmetic(int a){
+     public int arithmetic(){
         io.println(a);
-        return 0;
-    }
-
-    public int foo(){
-        int a;
-        a = 200;
-        this.arithmetic(a);
-        return 0;
+        return a;
     }
 
 
@@ -22,6 +15,6 @@ class Simple {
         int a;
         a = 100;
         s = new Simple();
-        b = s.foo();
+        s.arithmetic();
     }
 }

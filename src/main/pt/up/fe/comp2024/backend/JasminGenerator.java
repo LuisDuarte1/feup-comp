@@ -78,9 +78,6 @@ public class JasminGenerator {
         switch (callInstruction.getInvocationType()){
             case NEW -> {
                 var classType = (ClassType) callInstruction.getReturnType();
-                var className = currentMethod.getOllirClass().getImports().stream()
-                        .filter(((val) -> val.endsWith(classType.getName())))
-                        .findFirst().orElse(classType.getName()).replace(".", "/");
                 code.append(String.format("new %s", (classType.getName()))).append(NL);
                 code.append("dup").append(NL);
             }
@@ -339,10 +336,9 @@ public class JasminGenerator {
         // store value in the stack in destination
         var lhs = assign.getDest();
 
-        if (!(lhs instanceof Operand)) {
+        if (!(lhs instanceof Operand operand)) {
             throw new NotImplementedException(lhs.getClass());
         }
-        var operand = (Operand) lhs;
 
         // get register
         var reg = currentMethod.getVarTable().get(operand.getName()).getVirtualReg();
@@ -427,7 +423,6 @@ public class JasminGenerator {
             }
             default -> throw new RuntimeException(
                     String.format("Return type %s not handled", returnInst.getReturnType().getTypeOfElement().name()));
-
         }
 
         return code.toString();

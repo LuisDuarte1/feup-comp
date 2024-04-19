@@ -13,6 +13,7 @@ import java.util.regex.Pattern;
 import java.util.stream.IntStream;
 
 import static pt.up.fe.comp2024.ast.Kind.*;
+import static pt.up.fe.comp2024.ast.TypeUtils.getExprType;
 
 /**
  * Generates OLLIR code from JmmNodes that are expressions.
@@ -106,7 +107,7 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
 
         var computation = new StringBuilder();
         var insideContent = visit(node.getJmmChild(0));
-        Type resType = TypeUtils.getExprType(node, table);
+        Type resType = getExprType(node, table);
         String resOllirType = OptUtils.toOllirType(resType);
 
         computation.append(insideContent.getComputation());
@@ -131,7 +132,7 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
     private OllirExprResult visitBinExpr(JmmNode node, Void unused) {
 
         // code to compute self
-        Type resType = TypeUtils.getExprType(node, table);
+        Type resType = getExprType(node, table);
         String resOllirType = OptUtils.toOllirType(resType);
 
         var lhs = visit(node.getJmmChild(0));
@@ -150,7 +151,7 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
                 .append(ASSIGN).append(resOllirType).append(SPACE)
                 .append(lhs.getCode()).append(SPACE);
 
-        Type type = TypeUtils.getExprType(node, table);
+        Type type = getExprType(node, table);
         computation.append(node.get("op")).append(OptUtils.toOllirType(type)).append(SPACE)
                 .append(rhs.getCode());
         computation.append(END_STMT);
@@ -162,7 +163,7 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
     private OllirExprResult visitVarRef(JmmNode node, Void unused) {
         var computation = new StringBuilder();
         var id = node.get("name");
-        Type type = TypeUtils.getExprType(node, table);
+        Type type = getExprType(node, table);
         String ollirType = OptUtils.toOllirType(type);
 
         String code = id + ollirType;
@@ -219,7 +220,7 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         var computation = new StringBuilder();
         String code = OptUtils.getTemp();
         String type = getTypeFromParent(node);
-        if (THIS_LITERAL.check(node.getJmmChild(0)) && table.getMethods().contains(node.get("name"))
+        if ((THIS_LITERAL.check(node.getJmmChild(0)) && table.getMethods().contains(node.get("name")))
                 && type == null) {
             var foundReturnType = OptUtils.toOllirType(table.getReturnType(node.get("name")));
             return methodCallHelper(node, computation, code + foundReturnType, "this." + table.getClassName(),
@@ -243,7 +244,7 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
 
         String origin = TypeUtils.getVarExprOrigin(refNode, table);
 
-        // it mean it's an class field
+        // it means it's a class field
         if (Objects.equals(origin, TypeUtils.FIELD)) {
             var fieldComp = visit(refNode);
             computation.append(fieldComp.getComputation());
@@ -258,9 +259,11 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         }
         methodName = currNode.get("name");
 
-        if (Objects.equals(origin, TypeUtils.LOCAL) && Objects.equals(ref, table.getClassName()) && type == null) {
+        if (Objects.equals(origin, TypeUtils.LOCAL) && Objects.equals(getExprType(refNode, table).getName(), table.getClassName()) && type == null) {
             var foundReturnType = OptUtils.toOllirType(table.getReturnType(node.get("name")));
-            return methodCallHelper(node, computation, code + foundReturnType, code + "." + table.getClassName(),
+            var fieldComp = visit(refNode);
+            computation.append(fieldComp.getComputation());
+            return methodCallHelper(node, computation, code + foundReturnType, fieldComp.getCode(),
                     foundReturnType, true);
         }
 
