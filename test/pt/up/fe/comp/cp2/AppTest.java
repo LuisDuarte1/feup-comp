@@ -29,11 +29,20 @@ public class AppTest {
     }
 
     @Test
+    public void testVarLookupLocal() {
+        var code = SpecsIo.getResource("pt/up/fe/comp/cp2/apps/VarLookupLocal.jmm");
+        var jasminResult = TestUtils.backend(code, Collections.emptyMap());
+        System.out.println(jasminResult.getJasminCode());
+        var result = TestUtils.runJasmin(jasminResult.getJasminCode(), Collections.emptyMap());
+        assertEquals("100", result.strip());
+    }
+
+    @Test
     public void testVarLookupField() {
         var code = SpecsIo.getResource("pt/up/fe/comp/cp2/apps/VarLookupField.jmm");
         var jasminResult = TestUtils.backend(code, Collections.emptyMap());
         System.out.println(jasminResult.getJasminCode());
         var result = TestUtils.runJasmin(jasminResult.getJasminCode(), Collections.emptyMap());
-        assertEquals("100", result.strip());
+        assertEquals("200", result.strip());
     }
 }

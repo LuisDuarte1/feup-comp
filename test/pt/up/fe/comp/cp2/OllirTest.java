@@ -114,6 +114,12 @@ public class OllirTest {
     }
 
     @Test
+    public void compileVarLookupLocal(){
+        testJmmCompilation("pt/up/fe/comp/cp2/ollir/VarLookupLocal.jmm", (classunit) -> {
+        });
+    }
+
+    @Test
     public void compileVarLookupField(){
         testJmmCompilation("pt/up/fe/comp/cp2/ollir/VarLookupField.jmm", (classunit) -> {
         });

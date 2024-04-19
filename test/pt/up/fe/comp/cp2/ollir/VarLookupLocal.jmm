@@ -4,14 +4,8 @@ class Simple {
     int a;
 
      public int arithmetic(int a){
+        a = 100;
         io.println(a);
-        return 0;
-    }
-
-    public int foo(){
-        int a;
-        a = 200;
-        this.arithmetic(a);
         return 0;
     }
 
@@ -19,9 +13,9 @@ class Simple {
     public static void main(String[] args){
         Simple s;
         int b;
-        int a;
-        a = 100;
         s = new Simple();
-        b = s.foo();
+        b = s.arithmetic(200);
     }
+
+
 }

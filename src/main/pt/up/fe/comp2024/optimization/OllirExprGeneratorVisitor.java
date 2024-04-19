@@ -264,7 +264,7 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
                     foundReturnType, true);
         }
 
-        if (table.getParameters(methodName).stream().anyMatch((val) -> Objects.equals(val.getName(), ref))
+        if (Objects.equals(origin, TypeUtils.PARAM)
                 && Objects.equals(
                 table.getParameters(methodName).stream().filter((val) -> Objects.equals(val.getName(), ref))
                         .findFirst().orElseThrow().getType().getName(),
@@ -274,14 +274,14 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
                     foundReturnType, true);
         }
 
-        if (table.getLocalVariables(methodName).stream().anyMatch((val) -> Objects.equals(val.getName(), ref))
-                || table.getParameters(methodName).stream().anyMatch((val) -> Objects.equals(val.getName(), ref))) {
+        if (Objects.equals(origin, TypeUtils.LOCAL)
+                || Objects.equals(origin, TypeUtils.PARAM)) {
             var fieldComp = visit(refNode);
             computation.append(fieldComp.getComputation());
             return methodCallHelper(node, computation, code + type, fieldComp.getCode(), type, false);
         }
 
-        if (table.getImports().contains(ref)) {
+        if (Objects.equals(origin, TypeUtils.IMPORTS)) {
             var children = node.getChildren();
             var arguments = IntStream.range(0, node.getNumChildren()).skip(1).boxed().toList().stream().map(i -> {
                 // we can only infer the type if it's on this class
