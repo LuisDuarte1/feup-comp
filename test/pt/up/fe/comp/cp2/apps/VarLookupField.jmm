@@ -7,10 +7,10 @@ class Simple {
      public int arithmetic(int x, boolean y){
         int a;
         boolean b;
-        a = 3;
+        a = 0;
         b = y;
         x = a;
-        io.println(y);
+        io.println(a);
         return x;
     }
 
