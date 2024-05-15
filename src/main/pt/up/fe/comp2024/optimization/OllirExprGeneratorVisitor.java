@@ -41,6 +41,7 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         addVisit(NEW_OBJECT, this::visitNewObject);
         addVisit(THIS_LITERAL, this::visitThis);
         addVisit(PRIORITY_EXPR, this::visitPriorityExpr);
+        addVisit(IF_STMT, this::visitIfStmt);
         setDefaultVisit(this::defaultVisit);
     }
 
@@ -186,6 +187,14 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         //TODO (luisd): maybe check imported?
 
         return new OllirExprResult(code, computation);
+    }
+
+    private OllirExprResult visitIfStmt(JmmNode node, Void unused) {
+        JmmNode ifCond = node.getObject("ifCond", JmmNode.class);
+        JmmNode ifExpr = node.getObject("ifExpr", JmmNode.class);
+
+        System.out.println("Here");
+        return visit(ifCond);
     }
 
     /**
