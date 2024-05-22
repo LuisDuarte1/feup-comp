@@ -24,4 +24,15 @@ public class JmmOptimizationImpl implements JmmOptimization {
 
         return ollirResult;
     }
+
+    @Override
+    public JmmSemanticsResult optimize(JmmSemanticsResult semanticsResult) {
+        if(semanticsResult.getConfig().containsKey("optimize")){
+            ConstantFoldingVisitor constantFolding = new ConstantFoldingVisitor();
+            constantFolding.visit(semanticsResult.getRootNode());
+            System.out.println(constantFolding.getModified());
+
+        }
+        return semanticsResult;
+    }
 }
