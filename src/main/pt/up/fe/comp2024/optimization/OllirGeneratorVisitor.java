@@ -51,8 +51,17 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         addVisit(METHOD_CALL, this::visitMethodCall);
         addVisit(IMPORT_DECL, this::visitImportDecl);
         addVisit(EXPR_STMT, this::defaultAddVisit);
+        addVisit(IF_STMT, this::visitIfStmt);
 
         setDefaultVisit(this::defaultVisit);
+    }
+
+    private String visitIfStmt(JmmNode node, Void unused) {
+        JmmNode ifCond = node.getObject("ifCond", JmmNode.class);
+        JmmNode ifExpr = node.getObject("ifExpr", JmmNode.class);
+
+        System.out.println("Here");
+        return visit(ifCond);
     }
 
     private String visitMethodCall(JmmNode node, Void unused){
