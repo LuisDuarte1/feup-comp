@@ -1,11 +1,13 @@
 package pt.up.fe.comp2024.optimization;
 
+import org.specs.comp.ollir.ClassType;
 import pt.up.fe.comp.jmm.analysis.table.SymbolTable;
 import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.ast.JmmNode;
 import pt.up.fe.comp.jmm.ast.PreorderJmmVisitor;
 import pt.up.fe.comp2024.ast.TypeUtils;
 
+import java.util.Collections;
 import java.util.Objects;
 import java.util.regex.Pattern;
 import java.util.stream.IntStream;
@@ -191,6 +193,7 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         JmmNode ifCond = node.getObject("ifCond", JmmNode.class);
         JmmNode ifExpr = node.getObject("ifExpr", JmmNode.class);
 
+        System.out.println("Here");
         return visit(ifCond);
     }
 
