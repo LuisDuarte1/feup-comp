@@ -1,13 +1,11 @@
 package pt.up.fe.comp2024.optimization;
 
-import org.specs.comp.ollir.ClassType;
 import pt.up.fe.comp.jmm.analysis.table.SymbolTable;
 import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.ast.JmmNode;
 import pt.up.fe.comp.jmm.ast.PreorderJmmVisitor;
 import pt.up.fe.comp2024.ast.TypeUtils;
 
-import java.util.Collections;
 import java.util.Objects;
 import java.util.regex.Pattern;
 import java.util.stream.IntStream;
@@ -41,6 +39,7 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         addVisit(NEW_OBJECT, this::visitNewObject);
         addVisit(THIS_LITERAL, this::visitThis);
         addVisit(PRIORITY_EXPR, this::visitPriorityExpr);
+        addVisit(IF_STMT, this::visitIfStmt);
         setDefaultVisit(this::defaultVisit);
     }
 
@@ -186,6 +185,13 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         //TODO (luisd): maybe check imported?
 
         return new OllirExprResult(code, computation);
+    }
+
+    private OllirExprResult visitIfStmt(JmmNode node, Void unused) {
+        JmmNode ifCond = node.getObject("ifCond", JmmNode.class);
+        JmmNode ifExpr = node.getObject("ifExpr", JmmNode.class);
+
+        return visit(ifCond);
     }
 
     /**
