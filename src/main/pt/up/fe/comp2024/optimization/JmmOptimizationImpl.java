@@ -5,7 +5,6 @@ import pt.up.fe.comp.jmm.ollir.JmmOptimization;
 import pt.up.fe.comp.jmm.ollir.OllirResult;
 
 import java.util.Collections;
-
 public class JmmOptimizationImpl implements JmmOptimization {
 
     @Override
@@ -27,12 +26,17 @@ public class JmmOptimizationImpl implements JmmOptimization {
 
     @Override
     public JmmSemanticsResult optimize(JmmSemanticsResult semanticsResult) {
-        if(semanticsResult.getConfig().containsKey("optimize")){
+        if(semanticsResult.getConfig().containsKey("optimize")) {
             ConstantFoldingVisitor constantFolding = new ConstantFoldingVisitor();
-            constantFolding.visit(semanticsResult.getRootNode());
-            System.out.println(constantFolding.getModified());
-
+            ConstantPropagationVisitor constantPropagation = new ConstantPropagationVisitor();
+            do {
+                constantFolding.setModified(false);
+                constantPropagation.setModified(false);
+                constantFolding.visit(semanticsResult.getRootNode());
+                constantPropagation.visit(semanticsResult.getRootNode());
+            } while (constantFolding.getModified() || constantPropagation.getModified());
         }
+
         return semanticsResult;
     }
 }
