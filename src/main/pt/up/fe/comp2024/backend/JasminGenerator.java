@@ -77,9 +77,16 @@ public class JasminGenerator {
         var code = new StringBuilder();
         switch (callInstruction.getInvocationType()){
             case NEW -> {
-                var classType = (ClassType) callInstruction.getReturnType();
-                code.append(String.format("new %s", (classType.getName()))).append(NL);
-                code.append("dup").append(NL);
+                var returnType = callInstruction.getReturnType();
+                if(returnType instanceof ClassType){
+                    code.append(String.format("new %s", (((ClassType) returnType).getName()))).append(NL);
+                    code.append("dup").append(NL);
+                } else if(returnType instanceof ArrayType){
+                    String jasminArrayType = getJasminArrayType((ArrayType) returnType);
+                    code.append(String.format("newarray %s", jasminArrayType)).append(NL);
+                    code.append("dup").append(NL);
+                }
+
             }
             case invokespecial -> {
                 final Operand caller = (Operand) callInstruction.getCaller();
@@ -147,6 +154,19 @@ public class JasminGenerator {
             }
         }
         return code.toString();
+    }
+
+    private static String getJasminArrayType(ArrayType returnType) {
+        var arrayType =  returnType.getElementType().getTypeOfElement();
+        String jasminArrayType = "";
+        if(arrayType == ElementType.INT32 ){
+            jasminArrayType = "int";
+        } else if (arrayType == ElementType.BOOLEAN){
+            jasminArrayType = "boolean";
+        } else {
+            throw new RuntimeException(String.format("Didn't handle new array type for %s", arrayType));
+        }
+        return jasminArrayType;
     }
 
     private String generateGetField(GetFieldInstruction getFieldInstruction){
@@ -346,8 +366,7 @@ public class JasminGenerator {
 
         switch (type.getTypeOfElement()){
             case INT32, BOOLEAN -> code.append("istore ").append(reg).append(NL);
-            case CLASS -> code.append("astore ").append(reg).append(NL);
-            case OBJECTREF -> code.append("astore ").append(reg).append(NL);
+            case CLASS, OBJECTREF, ARRAYREF -> code.append("astore ").append(reg).append(NL);
             default -> throw new RuntimeException(
                     String.format("Assign type %s not handled", type.getTypeOfElement().name())
             );
@@ -369,7 +388,7 @@ public class JasminGenerator {
         var reg = currentMethod.getVarTable().get(operand.getName()).getVirtualReg();
         return switch (operand.getType().getTypeOfElement()){
             case INT32,BOOLEAN -> "iload ";
-            case OBJECTREF,CLASS -> "aload ";
+            case OBJECTREF,CLASS,ARRAYREF -> "aload ";
             case THIS -> "aload_0";
             default ->
                     throw new NotImplementedException(
@@ -417,7 +436,7 @@ public class JasminGenerator {
                 code.append(generators.apply(returnInst.getOperand()));
                 code.append("ireturn");
             }
-            case CLASS, OBJECTREF -> {
+            case CLASS, OBJECTREF, ARRAYREF -> {
                 code.append(generators.apply(returnInst.getOperand()));
                 code.append("areturn");
             }

@@ -1,0 +1,12 @@
+import Other;
+// import Person;
+
+class BasicMethods extends Other {
+
+    public boolean[] func4(){
+        boolean[] k;
+        k = new boolean[1];
+        return k;
+    }
+
+}
