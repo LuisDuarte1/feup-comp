@@ -10,6 +10,7 @@ import pt.up.fe.specs.util.classmap.FunctionClassMap;
 import pt.up.fe.specs.util.exceptions.NotImplementedException;
 import pt.up.fe.specs.util.utilities.StringLines;
 
+import java.sql.Array;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -51,11 +52,33 @@ public class JasminGenerator {
         generators.put(SingleOpInstruction.class, this::generateSingleOp);
         generators.put(LiteralElement.class, this::generateLiteral);
         generators.put(Operand.class, this::generateOperand);
+        generators.put(ArrayOperand.class, this::generateArrayOperand);
         generators.put(BinaryOpInstruction.class, this::generateBinaryOp);
         generators.put(ReturnInstruction.class, this::generateReturn);
         generators.put(PutFieldInstruction.class, this::generatePutField);
         generators.put(GetFieldInstruction.class, this::generateGetField);
         generators.put(CallInstruction.class, this::generateCallInstruction);
+    }
+
+    private String generateArrayOperand(ArrayOperand arrayOperand) {
+        var code = new StringBuilder();
+
+        var virtualReg = currentMethod.getVarTable().get(arrayOperand.getName()).getVirtualReg();
+
+        code.append(String.format("aload %s", virtualReg)).append(NL);
+
+        //TODO(luisd): multidimensional array
+        code.append(generators.apply(arrayOperand.getIndexOperands().get(0)));
+
+        switch(((ArrayType) currentMethod.getVarTable().get(arrayOperand.getName()).getVarType())
+                .getElementType().getTypeOfElement()){
+            case INT32 -> code.append("iaload").append(NL);
+            case BOOLEAN -> code.append("baload").append(NL);
+            default -> code.append("aaload").append(NL);
+        }
+
+
+        return code.toString();
     }
 
 
@@ -76,10 +99,27 @@ public class JasminGenerator {
     private String generateCallInstruction(CallInstruction callInstruction){
         var code = new StringBuilder();
         switch (callInstruction.getInvocationType()){
+            case arraylength -> {
+                var arrayRef = currentMethod.getVarTable()
+                        .get(((Operand) callInstruction.getCaller()).getName())
+                        .getVirtualReg();
+                code.append(String.format("aload %s", arrayRef)).append(NL);
+                code.append("arraylength").append(NL);
+            }
             case NEW -> {
-                var classType = (ClassType) callInstruction.getReturnType();
-                code.append(String.format("new %s", (classType.getName()))).append(NL);
-                code.append("dup").append(NL);
+                var returnType = callInstruction.getReturnType();
+                if(returnType instanceof ClassType){
+                    code.append(String.format("new %s", (((ClassType) returnType).getName()))).append(NL);
+                    code.append("dup").append(NL);
+                } else if(returnType instanceof ArrayType){
+                    callInstruction.getArguments().forEach(
+                            (el) -> code.append(generators.apply(el)
+                            ));
+                    String jasminArrayType = getJasminArrayType((ArrayType) returnType);
+                    code.append(String.format("newarray %s", jasminArrayType)).append(NL);
+                    code.append("dup").append(NL);
+                }
+
             }
             case invokespecial -> {
                 final Operand caller = (Operand) callInstruction.getCaller();
@@ -147,6 +187,19 @@ public class JasminGenerator {
             }
         }
         return code.toString();
+    }
+
+    private static String getJasminArrayType(ArrayType returnType) {
+        var arrayType =  returnType.getElementType().getTypeOfElement();
+        String jasminArrayType = "";
+        if(arrayType == ElementType.INT32 ){
+            jasminArrayType = "int";
+        } else if (arrayType == ElementType.BOOLEAN){
+            jasminArrayType = "boolean";
+        } else {
+            throw new RuntimeException(String.format("Didn't handle new array type for %s", arrayType));
+        }
+        return jasminArrayType;
     }
 
     private String generateGetField(GetFieldInstruction getFieldInstruction){
@@ -330,11 +383,30 @@ public class JasminGenerator {
     private String generateAssign(AssignInstruction assign) {
         var code = new StringBuilder();
 
+        // store value in the stack in destination
+        var lhs = assign.getDest();
+
+        if(lhs instanceof ArrayOperand operand){
+            var reg = currentMethod.getVarTable().get(operand.getName()).getVirtualReg();
+            code.append(String.format("aload %s", reg)).append(NL);
+            //TODO(luisd): multidimensional lists
+            code.append(generators.apply(operand.getIndexOperands().get(0)));
+            code.append(generators.apply(assign.getRhs()));
+
+            switch(((ArrayType) currentMethod.getVarTable().get(operand.getName()).getVarType())
+                    .getElementType().getTypeOfElement()){
+                case INT32 -> code.append("iastore").append(NL);
+                case BOOLEAN -> code.append("bastore").append(NL);
+                default -> code.append("aastore").append(NL);
+            }
+
+            return code.toString();
+        }
+
         // generate code for loading what's on the right
         code.append(generators.apply(assign.getRhs()));
 
-        // store value in the stack in destination
-        var lhs = assign.getDest();
+
 
         if (!(lhs instanceof Operand operand)) {
             throw new NotImplementedException(lhs.getClass());
@@ -346,8 +418,7 @@ public class JasminGenerator {
 
         switch (type.getTypeOfElement()){
             case INT32, BOOLEAN -> code.append("istore ").append(reg).append(NL);
-            case CLASS -> code.append("astore ").append(reg).append(NL);
-            case OBJECTREF -> code.append("astore ").append(reg).append(NL);
+            case CLASS, OBJECTREF, ARRAYREF -> code.append("astore ").append(reg).append(NL);
             default -> throw new RuntimeException(
                     String.format("Assign type %s not handled", type.getTypeOfElement().name())
             );
@@ -369,7 +440,7 @@ public class JasminGenerator {
         var reg = currentMethod.getVarTable().get(operand.getName()).getVirtualReg();
         return switch (operand.getType().getTypeOfElement()){
             case INT32,BOOLEAN -> "iload ";
-            case OBJECTREF,CLASS -> "aload ";
+            case OBJECTREF,CLASS,ARRAYREF -> "aload ";
             case THIS -> "aload_0";
             default ->
                     throw new NotImplementedException(
@@ -417,7 +488,7 @@ public class JasminGenerator {
                 code.append(generators.apply(returnInst.getOperand()));
                 code.append("ireturn");
             }
-            case CLASS, OBJECTREF -> {
+            case CLASS, OBJECTREF, ARRAYREF -> {
                 code.append(generators.apply(returnInst.getOperand()));
                 code.append("areturn");
             }

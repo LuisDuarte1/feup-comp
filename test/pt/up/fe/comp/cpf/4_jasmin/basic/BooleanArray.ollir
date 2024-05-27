@@ -1,0 +1,10 @@
+import Other;
+BasicMethods extends Other {
+    .method public func4().array.bool {
+        k.array.bool :=.array.bool new(array, 1.i32).array.bool;
+        ret.array.bool k.array.bool;
+    }
+    .construct BasicMethods().V {
+        invokespecial(this, "<init>").V;
+    }
+}
