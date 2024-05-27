@@ -58,6 +58,56 @@ public class JasminGenerator {
         generators.put(PutFieldInstruction.class, this::generatePutField);
         generators.put(GetFieldInstruction.class, this::generateGetField);
         generators.put(CallInstruction.class, this::generateCallInstruction);
+        generators.put(SingleOpCondInstruction.class, this::generateSingleOpCondInstruction);
+        generators.put(GotoInstruction.class, this::generateGoto);
+        generators.put(UnaryOpInstruction.class, this::generateUnaryOp);
+        generators.put(OpCondInstruction.class, this::generateOpCond);
+    }
+
+    private String generateOpCond(OpCondInstruction opCondInstruction) {
+        var code = new StringBuilder();
+        code.append(generators.apply(opCondInstruction.getCondition()));
+
+        code.append(String.format("ifgt %s", opCondInstruction.getLabel()))
+                .append(NL);
+
+        return code.toString();
+    }
+
+    private String generateUnaryOp(UnaryOpInstruction unaryOpInstruction) {
+        var code = new StringBuilder();
+
+        code.append(generators.apply(unaryOpInstruction.getOperand()));
+
+        switch (unaryOpInstruction.getOperation().getOpType()){
+            case NOTB -> {
+                code
+                    .append("iconst_1").append(NL)
+                    .append("ixor").append(NL);
+            }
+            default -> throw new RuntimeException(
+                    String.format("Unary operator %s not implemented yet",
+                    unaryOpInstruction.getOperation().getOpType())
+            );
+        }
+
+        return code.toString();
+    }
+
+    private String generateGoto(GotoInstruction gotoInstruction) {
+        return String.format("goto %s\n", gotoInstruction.getLabel());
+    }
+
+    private String generateSingleOpCondInstruction(SingleOpCondInstruction singleOpCondInstruction) {
+        var code = new StringBuilder();
+
+        code.append(generators.apply(singleOpCondInstruction.getCondition()));
+
+        code.append(String.format("ifgt %s", singleOpCondInstruction.getLabel()))
+                .append(NL);
+
+
+        return code.toString();
     }
 
     private String generateArrayOperand(ArrayOperand arrayOperand) {
@@ -357,11 +407,16 @@ public class JasminGenerator {
         code.append(TAB).append(".limit stack 99").append(NL);
         code.append(TAB).append(".limit locals 99").append(NL);
 
+        String lastLabel = "";
         for (var inst : method.getInstructions()) {
+            var label = method.getLabels(inst);
+            if(label != null && !label.isEmpty() && !Objects.equals(label.get(label.size() - 1), lastLabel)){
+                code.append(label.get(label.size() - 1)).append(":").append(NL);
+                lastLabel = label.get(label.size() - 1);
+            }
             var instCode = StringLines.getLines(generators.apply(inst)).stream()
                     .collect(Collectors.joining(NL + TAB, TAB, NL));
             code.append(instCode);
-
             if(inst instanceof CallInstruction){
                 var funcReturnType = ((CallInstruction) inst).getReturnType().getTypeOfElement();
                 var callType = ((CallInstruction) inst).getInvocationType();
@@ -469,6 +524,12 @@ public class JasminGenerator {
                 var elseLabel = OptUtils.getTemp();
                 var nextLabel = OptUtils.getTemp();
                 yield String.format("if_icmpge %s\n ldc 1\n goto %s \n %s:\n ldc 0\n %s:",
+                        elseLabel, nextLabel, elseLabel, nextLabel);
+            }
+            case GTE -> {
+                var elseLabel = OptUtils.getTemp();
+                var nextLabel = OptUtils.getTemp();
+                yield String.format("if_icmple %s\n ldc 1\n goto %s \n %s:\n ldc 0\n %s:",
                         elseLabel, nextLabel, elseLabel, nextLabel);
             }
             default -> throw new NotImplementedException(binaryOp.getOperation().getOpType());
