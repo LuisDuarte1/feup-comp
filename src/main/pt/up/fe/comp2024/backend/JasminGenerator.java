@@ -99,6 +99,13 @@ public class JasminGenerator {
     private String generateCallInstruction(CallInstruction callInstruction){
         var code = new StringBuilder();
         switch (callInstruction.getInvocationType()){
+            case arraylength -> {
+                var arrayRef = currentMethod.getVarTable()
+                        .get(((Operand) callInstruction.getCaller()).getName())
+                        .getVirtualReg();
+                code.append(String.format("aload %s", arrayRef)).append(NL);
+                code.append("arraylength").append(NL);
+            }
             case NEW -> {
                 var returnType = callInstruction.getReturnType();
                 if(returnType instanceof ClassType){
