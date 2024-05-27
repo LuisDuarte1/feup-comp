@@ -10,6 +10,7 @@ import pt.up.fe.specs.util.classmap.FunctionClassMap;
 import pt.up.fe.specs.util.exceptions.NotImplementedException;
 import pt.up.fe.specs.util.utilities.StringLines;
 
+import java.sql.Array;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -51,11 +52,33 @@ public class JasminGenerator {
         generators.put(SingleOpInstruction.class, this::generateSingleOp);
         generators.put(LiteralElement.class, this::generateLiteral);
         generators.put(Operand.class, this::generateOperand);
+        generators.put(ArrayOperand.class, this::generateArrayOperand);
         generators.put(BinaryOpInstruction.class, this::generateBinaryOp);
         generators.put(ReturnInstruction.class, this::generateReturn);
         generators.put(PutFieldInstruction.class, this::generatePutField);
         generators.put(GetFieldInstruction.class, this::generateGetField);
         generators.put(CallInstruction.class, this::generateCallInstruction);
+    }
+
+    private String generateArrayOperand(ArrayOperand arrayOperand) {
+        var code = new StringBuilder();
+
+        var virtualReg = currentMethod.getVarTable().get(arrayOperand.getName()).getVirtualReg();
+
+        code.append(String.format("aload %s", virtualReg)).append(NL);
+
+        //TODO(luisd): multidimensional array
+        code.append(generators.apply(arrayOperand.getIndexOperands().get(0)));
+
+        switch(((ArrayType) currentMethod.getVarTable().get(arrayOperand.getName()).getVarType())
+                .getElementType().getTypeOfElement()){
+            case INT32 -> code.append("iaload").append(NL);
+            case BOOLEAN -> code.append("baload").append(NL);
+            default -> code.append("aaload").append(NL);
+        }
+
+
+        return code.toString();
     }
 
 
@@ -82,6 +105,9 @@ public class JasminGenerator {
                     code.append(String.format("new %s", (((ClassType) returnType).getName()))).append(NL);
                     code.append("dup").append(NL);
                 } else if(returnType instanceof ArrayType){
+                    callInstruction.getArguments().forEach(
+                            (el) -> code.append(generators.apply(el)
+                            ));
                     String jasminArrayType = getJasminArrayType((ArrayType) returnType);
                     code.append(String.format("newarray %s", jasminArrayType)).append(NL);
                     code.append("dup").append(NL);
@@ -350,11 +376,30 @@ public class JasminGenerator {
     private String generateAssign(AssignInstruction assign) {
         var code = new StringBuilder();
 
+        // store value in the stack in destination
+        var lhs = assign.getDest();
+
+        if(lhs instanceof ArrayOperand operand){
+            var reg = currentMethod.getVarTable().get(operand.getName()).getVirtualReg();
+            code.append(String.format("aload %s", reg)).append(NL);
+            //TODO(luisd): multidimensional lists
+            code.append(generators.apply(operand.getIndexOperands().get(0)));
+            code.append(generators.apply(assign.getRhs()));
+
+            switch(((ArrayType) currentMethod.getVarTable().get(operand.getName()).getVarType())
+                    .getElementType().getTypeOfElement()){
+                case INT32 -> code.append("iastore").append(NL);
+                case BOOLEAN -> code.append("bastore").append(NL);
+                default -> code.append("aastore").append(NL);
+            }
+
+            return code.toString();
+        }
+
         // generate code for loading what's on the right
         code.append(generators.apply(assign.getRhs()));
 
-        // store value in the stack in destination
-        var lhs = assign.getDest();
+
 
         if (!(lhs instanceof Operand operand)) {
             throw new NotImplementedException(lhs.getClass());
