@@ -12,6 +12,7 @@ import pt.up.fe.specs.util.utilities.StringLines;
 
 import java.sql.Array;
 import java.util.*;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static pt.up.fe.comp2024.optimization.OptUtils.getTemp;
@@ -156,7 +157,9 @@ public class JasminGenerator {
 
         // This way, build is idempotent
         if (code == null) {
-            code = generators.apply(ollirResult.getOllirClass());
+            String nonOptimizedCode = generators.apply(ollirResult.getOllirClass());
+            code = JasminLowCostOptimizer.optimizeJasmin(nonOptimizedCode);
+            System.out.println(code);
         }
 
         return code;
@@ -407,7 +410,6 @@ public class JasminGenerator {
 
             code.append(generators.apply(method));
         }
-        System.out.println(code);
         return code.toString();
     }
 
@@ -526,7 +528,18 @@ public class JasminGenerator {
         }
 
         // generate code for loading what's on the right
-        code.append(generators.apply(assign.getRhs()));
+        var rhs = generators.apply(assign.getRhs());
+        if(rhs.matches(".*iinc [0-9]+ -?[0-9]+\n")){
+            code.append(rhs);
+            var matcher = Pattern.compile(".*iinc ([0-9]+) -?[0-9]+\n").matcher(rhs);
+            //noinspection ResultOfMethodCallIgnored
+            matcher.find();
+            var register = matcher.group(1);
+            code.append(String.format("iload %s", register)).append(NL);
+        }
+        else {
+             code.append(rhs);
+        }
 
 
 
@@ -556,6 +569,31 @@ public class JasminGenerator {
 
     private String generateLiteral(LiteralElement literal) {
         incrementCurrentStackLimit(1);
+        if(literal.getType().getTypeOfElement() == ElementType.INT32){
+            int constant = Integer.parseInt(literal.getLiteral());
+            switch (constant){
+                case -1:
+                    return "iconst_m1" + NL;
+                case 0:
+                    return "iconst_0" + NL;
+                case 1:
+                    return "iconst_1" + NL;
+                case 2:
+                    return "iconst_2" + NL;
+                case 3:
+                    return "iconst_3" + NL;
+                case 4:
+                    return "iconst_4" + NL;
+                case 5:
+                    return "iconst_5" + NL;
+            }
+            if(-128 <= constant && constant <= 127){
+                return String.format("bipush %d\n",constant);
+            }
+            if(-Math.pow(2, 15) <= constant && constant <= Math.pow(2, 15)-1){
+                return String.format("sipush %d\n",constant);
+            }
+        }
         return "ldc " + literal.getLiteral() + NL;
     }
 
@@ -581,9 +619,49 @@ public class JasminGenerator {
     private String generateBinaryOp(BinaryOpInstruction binaryOp) {
         var code = new StringBuilder();
 
+        if(binaryOp.getOperation().getOpType() == OperationType.ADD && binaryOp.getLeftOperand()
+                instanceof LiteralElement literalElement && binaryOp.getRightOperand() instanceof Operand operand){
+            var reg = currentMethod.getVarTable().get(operand.getName()).getVirtualReg();
+            return String.format("iinc %d %d\n", reg, Integer.parseInt(literalElement.getLiteral()));
+        }
+
+        if(binaryOp.getOperation().getOpType() == OperationType.ADD && binaryOp.getRightOperand()
+                instanceof LiteralElement literalElement && binaryOp.getLeftOperand() instanceof Operand operand){
+            var reg = currentMethod.getVarTable().get(operand.getName()).getVirtualReg();
+            return String.format("iinc %d %d\n", reg, Integer.parseInt(literalElement.getLiteral()));
+        }
+
+        if(binaryOp.getOperation().getOpType() == OperationType.SUB && binaryOp.getLeftOperand()
+                instanceof LiteralElement literalElement && binaryOp.getRightOperand() instanceof Operand operand){
+            var reg = currentMethod.getVarTable().get(operand.getName()).getVirtualReg();
+            return String.format("iinc %d %d\n", reg, -Integer.parseInt(literalElement.getLiteral()));
+        }
+
+        if(binaryOp.getOperation().getOpType() == OperationType.SUB && binaryOp.getRightOperand()
+                instanceof LiteralElement literalElement && binaryOp.getLeftOperand() instanceof Operand operand){
+            var reg = currentMethod.getVarTable().get(operand.getName()).getVirtualReg();
+            return String.format("iinc %d %d\n", reg, -Integer.parseInt(literalElement.getLiteral()));
+        }
+
         // load values on the left and on the right
-        code.append(generators.apply(binaryOp.getLeftOperand()));
-        code.append(generators.apply(binaryOp.getRightOperand()));
+        var lhs = generators.apply(binaryOp.getLeftOperand());
+        if(lhs.matches("iinc [0-9]+ -?[0-9]+\n")){
+            code.append(lhs);
+            var register = Pattern.compile("iinc ([0-9]+) .*\n").matcher(lhs).group(1);
+            code.append(String.format("iload %s", register)).append(NL);
+
+        } else {
+            code.append(lhs);
+        }
+        var rhs = generators.apply(binaryOp.getRightOperand());
+        if(rhs.matches("iinc [0-9]+ -?[0-9]+\n")){
+            code.append(rhs);
+            var register = Pattern.compile("iinc ([0-9]+) .*\n").matcher(rhs).group(1);
+            code.append(String.format("iload %s", register)).append(NL);
+
+        } else {
+            code.append(rhs);
+        }
 
         // apply operation
         incrementCurrentStackLimit(-1);
@@ -599,13 +677,13 @@ public class JasminGenerator {
             case LTH -> {
                 var elseLabel = OptUtils.getTemp();
                 var nextLabel = OptUtils.getTemp();
-                yield String.format("if_icmpge %s\n ldc 1\n goto %s \n %s:\n ldc 0\n %s:",
+                yield String.format("isub \nifge %s\n ldc 1\n goto %s \n %s:\n ldc 0\n %s:",
                         elseLabel, nextLabel, elseLabel, nextLabel);
             }
             case GTE -> {
                 var elseLabel = OptUtils.getTemp();
                 var nextLabel = OptUtils.getTemp();
-                yield String.format("if_icmple %s\n ldc 1\n goto %s \n %s:\n ldc 0\n %s:",
+                yield String.format("isub \n ifle %s\n ldc 1\n goto %s \n %s:\n ldc 0\n %s:",
                         elseLabel, nextLabel, elseLabel, nextLabel);
             }
             default -> throw new NotImplementedException(binaryOp.getOperation().getOpType());
