@@ -7,9 +7,21 @@ import java.util.regex.Pattern;
 public class JasminLowCostOptimizer {
 
     public static final List<Function<String, String>> optimizationFuncs = List.of(
+        JasminLowCostOptimizer::optimizeRedudantLoadStore,
         JasminLowCostOptimizer::optimizeIntLoadAndStore,
         JasminLowCostOptimizer::optimizeObjectLoadAndStore
     );
+
+    private static String optimizeRedudantLoadStore(String code) {
+        String optimizedCode = code;
+
+        optimizedCode = Pattern.compile("iload ([0-9]+)\n[ \t]*istore \\1\n").matcher(optimizedCode)
+                .replaceAll("");
+
+        optimizedCode = Pattern.compile("aload ([0-9]+)\n[ \t]*astore \\1\n").matcher(optimizedCode)
+                .replaceAll("");
+        return optimizedCode;
+    }
 
 
     public static String optimizeIntLoadAndStore(String code){
