@@ -27,7 +27,6 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
     private final String L_BRACKET = " {\n";
     private final String R_BRACKET = "}\n";
     private final String END_TAG = ":\n";
-    private final String TAB = "\t";
 
     private final SymbolTable table;
 
@@ -54,8 +53,40 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         addVisit(IMPORT_DECL, this::visitImportDecl);
         addVisit(EXPR_STMT, this::defaultAddVisit);
         addVisit(IF_STMT, this::visitIfStmt);
+        addVisit(WHILE_STMT, this::visitWhileStmt);
 
         setDefaultVisit(this::defaultVisit);
+    }
+
+    private String visitWhileStmt(JmmNode node, Void unused) {
+        var code = new StringBuilder();
+
+        JmmNode whileCond = node.getObject("whileCond", JmmNode.class);
+        JmmNode whileExpr = node.getObject("whileExpr", JmmNode.class);
+
+        var loopTag = OptUtils.getLoopTag();
+        var bodyLoopTag = "body" + "_" + loopTag;
+        var endLoopTag = "end" + "_" + loopTag;
+
+        code.append(loopTag).append(END_TAG);
+
+        var cond = exprVisitor.visit(whileCond);
+        code.append(cond.getComputation());
+        //If loop condition is true, goto body
+        code.append("if").append(SPACE).append("(");
+        code.append(cond.getCode()).append(")").append(SPACE).append("goto").append(SPACE).append(bodyLoopTag).append(END_STMT);
+        //If not, goto end of loop
+        code.append("goto").append(SPACE).append(endLoopTag).append(END_STMT);
+
+        var loopCode = visit(whileExpr);
+        //Do loop body and goto loop start
+        code.append(bodyLoopTag).append(END_TAG);
+        code.append(loopCode);
+        code.append("goto").append(SPACE).append(loopTag).append(END_STMT);
+
+        code.append(endLoopTag).append(END_TAG);
+
+        return code.toString();
     }
 
     private String visitIfStmt(JmmNode node, Void unused) {
@@ -66,20 +97,20 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         JmmNode elseExpr = node.getObject("elseExpr", JmmNode.class);
 
         var ifTag = OptUtils.getIfTag();
-        var enfIfTag = "end" + ifTag;
+        var enfIfTag = "end" + "_" + ifTag;
 
         var cond = exprVisitor.visit(ifCond);
         code.append(cond.getComputation());
         code.append("if").append(SPACE).append("(");
-        code.append(cond.getCode()).append(") ").append("goto ").append(ifTag).append(END_STMT);
+        code.append(cond.getCode()).append(")").append(SPACE).append("goto").append(SPACE).append(ifTag).append(END_STMT);
 
         var elseCode = visit(elseExpr);
-        code.append(TAB).append(elseCode);
+        code.append(elseCode);
         code.append("goto").append(SPACE).append(enfIfTag).append(END_STMT);
 
         var thenCode = visit(ifExpr);
         code.append(ifTag).append(END_TAG);
-        code.append(TAB).append(thenCode);
+        code.append(thenCode);
 
         code.append(enfIfTag).append(END_TAG);
 

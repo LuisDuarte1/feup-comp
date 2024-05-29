@@ -17,6 +17,7 @@ import static pt.up.fe.comp2024.ast.Kind.VAR_DECL;
 public class OptUtils {
     private static int tempNumber = -1;
     private static int ifNumber = 0;
+    private static int loopNumber = 0;
 
     public static String getTemp() {
 
@@ -50,12 +51,28 @@ public class OptUtils {
         return ifNumber;
     }
 
+    public static String getLoopTag() {
+
+        return getIfTag("loop");
+    }
+
+    public static String getLoopTag(String prefix) {
+
+        return prefix + getNextLoopNum();
+    }
+
+    public static int getNextLoopNum() {
+
+        loopNumber += 1;
+        return loopNumber;
+    }
+
     public static String toOllirType(JmmNode typeNode) {
 
         //TODO: Check this
         //TYPE.checkOrThrow(typeNode);
         String typeName = typeNode.getKind();
-        if (OBJECT_TYPE.check(typeNode)){
+        if (OBJECT_TYPE.check(typeNode)) {
             typeName = typeNode.get("name");
         }
 
