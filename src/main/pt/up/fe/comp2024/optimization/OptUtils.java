@@ -18,6 +18,7 @@ public class OptUtils {
     private static int tempNumber = -1;
     private static int ifNumber = 0;
     private static int loopNumber = 0;
+    private static int andNumber = 0;
 
     public static String getTemp() {
 
@@ -66,6 +67,24 @@ public class OptUtils {
         loopNumber += 1;
         return loopNumber;
     }
+
+    public static String getAndTag() {
+
+        return getAndTag("and");
+    }
+
+    public static String getAndTag(String prefix) {
+
+        return prefix + getNextAndNum();
+    }
+
+    public static int getNextAndNum() {
+
+        andNumber += 1;
+        return andNumber;
+    }
+
+
 
     public static String toOllirType(JmmNode typeNode) {
 

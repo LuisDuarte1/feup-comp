@@ -24,6 +24,7 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
     private static final String SPACE = " ";
     private static final String ASSIGN = ":=";
     private final String END_STMT = ";\n";
+    private final String END_TAG = ":\n";
 
     private final SymbolTable table;
 
@@ -131,6 +132,7 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
 
 
     private OllirExprResult visitBinExpr(JmmNode node, Void unused) {
+        boolean isShortCircuit = Objects.equals(node.get("op"), "&&");
 
         // code to compute self
         Type resType = getExprType(node, table);
@@ -140,22 +142,34 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         var rhs = visit(node.getJmmChild(1));
 
         StringBuilder computation = new StringBuilder();
+        String code = OptUtils.getTemp() + resOllirType;
 
         // code to compute the children
         computation.append(lhs.getComputation());
-        computation.append(rhs.getComputation());
+        if (!isShortCircuit) {
+            computation.append(rhs.getComputation());
+            computation.append(code).append(SPACE)
+                    .append(ASSIGN).append(resOllirType).append(SPACE)
+                    .append(lhs.getCode()).append(SPACE);
 
-
-        String code = OptUtils.getTemp() + resOllirType;
-
-        computation.append(code).append(SPACE)
-                .append(ASSIGN).append(resOllirType).append(SPACE)
-                .append(lhs.getCode()).append(SPACE);
-
-        Type type = getExprType(node, table);
-        computation.append(node.get("op")).append(OptUtils.toOllirType(type)).append(SPACE)
-                .append(rhs.getCode());
-        computation.append(END_STMT);
+            Type type = getExprType(node, table);
+            computation.append(node.get("op")).append(OptUtils.toOllirType(type)).append(SPACE)
+                    .append(rhs.getCode());
+            computation.append(END_STMT);
+        } else {
+            String andTag = OptUtils.getAndTag();
+            String endAndTag = "end_" + andTag;
+            computation.append("if").append(SPACE).append("(").append(lhs.getCode()).append(")").append(SPACE);
+            //If the lhs of the and is false, assign the variable to false
+            computation.append("goto").append(SPACE).append(andTag).append(END_STMT);
+            computation.append(code).append(SPACE).append(ASSIGN).append(".bool").append(SPACE).append("0.bool").append(END_STMT);
+            computation.append("goto").append(SPACE).append(endAndTag).append(END_STMT);
+            //Else compute the rhs and assign the variable to it
+            computation.append(andTag).append(END_TAG);
+            computation.append(rhs.getComputation());
+            computation.append(code).append(SPACE).append(ASSIGN).append(".bool").append(SPACE).append(rhs.getCode()).append(END_STMT);
+            computation.append(endAndTag).append(END_TAG);
+        }
 
         return new OllirExprResult(code, computation);
     }
