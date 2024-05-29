@@ -18,9 +18,12 @@ public class JmmOptimizationImpl implements JmmOptimization {
 
     @Override
     public OllirResult optimize(OllirResult ollirResult) {
+        int n = Integer.parseInt(ollirResult.getConfig().getOrDefault("registerAllocation", "-1"));
 
-        //TODO: Do your OLLIR-based optimizations here
-
+        if(n >= 0) {
+            RegisterAllocation registerAllocation = new RegisterAllocation(ollirResult, n);
+            registerAllocation.optimizeRegisters();
+        }
         return ollirResult;
     }
 
