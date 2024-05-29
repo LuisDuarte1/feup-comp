@@ -246,8 +246,14 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
 
         //parse return statement, if it exists
         var lastChild = node.getChildren().get(node.getNumChildren() - 1);
-        if (!retType.equals("V")) {
+        if (!retType.equals("V") &&
+                !(BOOLEAN_LITERAL.check(lastChild) || INTEGER_LITERAL.check(lastChild) || VAR_REF_EXPR.check(lastChild))){
             var expr = exprVisitor.visitForceTemp(lastChild, retType);
+            code.append(expr.getComputation());
+            code.append(String.format("ret%s %s;", retType, expr.getCode()));
+        } else if (!retType.equals("V") &&
+                (BOOLEAN_LITERAL.check(lastChild) || INTEGER_LITERAL.check(lastChild) || VAR_REF_EXPR.check(lastChild))) {
+            var expr = exprVisitor.visit(lastChild);
             code.append(expr.getComputation());
             code.append(String.format("ret%s %s;", retType, expr.getCode()));
         } else {

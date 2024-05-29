@@ -92,6 +92,11 @@ public class Cpf4_Jasmin {
         JasminResult jasminResult = getJasminResult("basic/BasicMethodsArray.ollir");
         CpUtils.matches(jasminResult, JASMIN_METHOD_REGEX_PREFIX + "\\[I");
     }
+    @Test
+    public void section1_Boolean_Declaration_Array() {
+        JasminResult jasminResult = getJasminResult("basic/BooleanArray.ollir");
+        CpUtils.matches(jasminResult, JASMIN_METHOD_REGEX_PREFIX + "\\[Z");
+    }
 
     /*checks if the index for loading a argument is correct (should be 1) */
     @Test
