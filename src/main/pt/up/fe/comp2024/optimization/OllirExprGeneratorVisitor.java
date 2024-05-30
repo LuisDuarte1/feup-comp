@@ -15,6 +15,7 @@ import java.util.stream.IntStream;
 
 import static pt.up.fe.comp2024.ast.Kind.*;
 import static pt.up.fe.comp2024.ast.TypeUtils.getExprType;
+import static pt.up.fe.comp2024.ast.TypeUtils.getVarExprType;
 
 /**
  * Generates OLLIR code from JmmNodes that are expressions.
@@ -49,13 +50,19 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
     }
 
     public OllirExprResult visitListAccess(JmmNode node, Void unused) {
-        OllirExprResult array = visit(node.getJmmChild(0));
-        OllirExprResult index = visit(node.getJmmChild(1));
+        JmmNode arrayNode = node.getJmmChild(0);
+        JmmNode indexNode = node.getJmmChild(1);
+
+        OllirExprResult array = visit(arrayNode);
+        OllirExprResult index;
+        Type indexType = getExprType(indexNode, table);
 
         var code = new StringBuilder();
         var computation = new StringBuilder();
 
-        JmmNode arrayNode = node.getJmmChild(0);
+        if (!(indexNode.isInstance(INTEGER_LITERAL) || indexNode.isInstance(BOOLEAN_LITERAL))) {
+            index = visitForceTemp(indexNode, OptUtils.toOllirType(indexType));
+        } else index = visit(indexNode);
 
         code.append(arrayNode.get("name")).append("[").append(index.getCode()).append("]").append(".i32");
 
@@ -337,6 +344,9 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
                 }
                 if (argumentReturnType.isPresent() && METHOD_CALL.check(child)) {
                     return visitForceTemp(child, OptUtils.toOllirType(argumentReturnType.get().get(i - 1).getType()));
+                }
+                if (LIST_ACCESS.check(child)) {
+                    return visitForceTemp(child, ".i32");
                 }
                 return visit(child);
             }).toList();
