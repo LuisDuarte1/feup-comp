@@ -109,7 +109,15 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
             index = visitForceTemp(indexNode, OptUtils.toOllirType(indexType));
         } else index = visit(indexNode);
 
-        code.append(arrayNode.get("name")).append("[").append(index.getCode()).append("]").append(".i32");
+        String varName;
+
+        if (arrayNode.isInstance(ARRAY)) {
+            varName = array.getCode();
+            varName = varName.substring(0, varName.indexOf('.'));
+        } else {
+            varName = arrayNode.get("name");
+        }
+        code.append(varName).append("[").append(index.getCode()).append("]").append(".i32");
 
         return new OllirExprResult(code.toString(), array.getComputation() + index.getComputation());
     }
@@ -132,9 +140,7 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
     }
 
     public OllirExprResult visitBool(JmmNode node, Void unused) {
-        return new OllirExprResult(
-                (Objects.equals(node.get("value"), "true") ? "1" : "0")
-                        + ".bool");
+        return new OllirExprResult((Objects.equals(node.get("value"), "true") ? "1" : "0") + ".bool");
     }
 
     public OllirExprResult visitForceTemp(JmmNode node, String type) {
@@ -151,13 +157,7 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         }
         var returnedRegister = matcher.group(1);
 
-        computation.append(String.format("%s%s :=%s %s%s;",
-                register,
-                type,
-                type,
-                returnedRegister,
-                type
-        )).append("\n");
+        computation.append(String.format("%s%s :=%s %s%s;", register, type, type, returnedRegister, type)).append("\n");
 
         return new OllirExprResult(register + type, computation);
 
@@ -167,16 +167,10 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         var computation = new StringBuilder();
         String register = OptUtils.getTemp();
         String name = node.get("name");
-        computation.append(String.format("%s.%s :=.%s new(%s).%s;",
-                register, name, name, name, name)).append("\n");
+        computation.append(String.format("%s.%s :=.%s new(%s).%s;", register, name, name, name, name)).append("\n");
         var arguments = node.getChildren().stream().map(this::visit).toList();
         arguments.stream().map(OllirExprResult::getComputation).toList().forEach(computation::append);
-        computation.append(String.format("invokespecial(%s.%s,\"<init>\"%s).V;",
-                        register,
-                        name,
-                        arguments.stream().map(OllirExprResult::getCode).reduce("", (a, b) -> a + "," + b)
-                ))
-                .append("\n");
+        computation.append(String.format("invokespecial(%s.%s,\"<init>\"%s).V;", register, name, arguments.stream().map(OllirExprResult::getCode).reduce("", (a, b) -> a + "," + b))).append("\n");
         return new OllirExprResult(register + "." + name, computation);
     }
 
@@ -190,11 +184,7 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         String resOllirType = OptUtils.toOllirType(resType);
 
         computation.append(insideContent.getComputation());
-        computation.append(
-                        String.format("%s%s :=%s %s%s %s;",
-                                register, resOllirType, resOllirType, node.get("op"), resOllirType, insideContent.getCode()
-                        ))
-                .append("\n");
+        computation.append(String.format("%s%s :=%s %s%s %s;", register, resOllirType, resOllirType, node.get("op"), resOllirType, insideContent.getCode())).append("\n");
 
         return new OllirExprResult(register + resOllirType, computation);
 
@@ -225,13 +215,10 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         computation.append(lhs.getComputation());
         if (!isShortCircuit) {
             computation.append(rhs.getComputation());
-            computation.append(code).append(SPACE)
-                    .append(ASSIGN).append(resOllirType).append(SPACE)
-                    .append(lhs.getCode()).append(SPACE);
+            computation.append(code).append(SPACE).append(ASSIGN).append(resOllirType).append(SPACE).append(lhs.getCode()).append(SPACE);
 
             Type type = getExprType(node, table);
-            computation.append(node.get("op")).append(OptUtils.toOllirType(type)).append(SPACE)
-                    .append(rhs.getCode());
+            computation.append(node.get("op")).append(OptUtils.toOllirType(type)).append(SPACE).append(rhs.getCode());
             computation.append(END_STMT);
         } else {
             String andTag = OptUtils.getAndTag();
@@ -263,14 +250,7 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         if (Objects.equals(TypeUtils.getVarExprOrigin(node, table), TypeUtils.FIELD)) {
             var fieldTmp = OptUtils.getTemp();
 
-            computation.append(String.format(
-                            "%s%s :=%s getfield(this, %s%s)%s;",
-                            fieldTmp, ollirType,
-                            ollirType,
-                            id, ollirType,
-                            ollirType
-                    ))
-                    .append("\n");
+            computation.append(String.format("%s%s :=%s getfield(this, %s%s)%s;", fieldTmp, ollirType, ollirType, id, ollirType, ollirType)).append("\n");
 
             return new OllirExprResult(fieldTmp + ollirType, computation);
         }
@@ -312,11 +292,9 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         var computation = new StringBuilder();
         String code = OptUtils.getTemp();
         String type = getTypeFromParent(node);
-        if ((THIS_LITERAL.check(node.getJmmChild(0)) && table.getMethods().contains(node.get("name")))
-                && type == null) {
+        if ((THIS_LITERAL.check(node.getJmmChild(0)) && table.getMethods().contains(node.get("name"))) && type == null) {
             var foundReturnType = OptUtils.toOllirType(table.getReturnType(node.get("name")));
-            return methodCallHelper(node, computation, code + foundReturnType, "this." + table.getClassName(),
-                    foundReturnType, true);
+            return methodCallHelper(node, computation, code + foundReturnType, "this." + table.getClassName(), foundReturnType, true);
         }
         if (THIS_LITERAL.check(node.getJmmChild(0))) {
             return methodCallHelper(node, computation, code + type, "this." + table.getClassName(), type, false);
@@ -355,22 +333,15 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
             var foundReturnType = OptUtils.toOllirType(table.getReturnType(node.get("name")));
             var fieldComp = visit(refNode);
             computation.append(fieldComp.getComputation());
-            return methodCallHelper(node, computation, code + foundReturnType, fieldComp.getCode(),
-                    foundReturnType, true);
+            return methodCallHelper(node, computation, code + foundReturnType, fieldComp.getCode(), foundReturnType, true);
         }
 
-        if (Objects.equals(origin, TypeUtils.PARAM)
-                && Objects.equals(
-                table.getParameters(methodName).stream().filter((val) -> Objects.equals(val.getName(), ref))
-                        .findFirst().orElseThrow().getType().getName(),
-                table.getClassName()) && type == null) {
+        if (Objects.equals(origin, TypeUtils.PARAM) && Objects.equals(table.getParameters(methodName).stream().filter((val) -> Objects.equals(val.getName(), ref)).findFirst().orElseThrow().getType().getName(), table.getClassName()) && type == null) {
             var foundReturnType = OptUtils.toOllirType(table.getReturnType(node.get("name")));
-            return methodCallHelper(node, computation, code + foundReturnType, code + "." + table.getClassName(),
-                    foundReturnType, true);
+            return methodCallHelper(node, computation, code + foundReturnType, code + "." + table.getClassName(), foundReturnType, true);
         }
 
-        if (Objects.equals(origin, TypeUtils.LOCAL)
-                || Objects.equals(origin, TypeUtils.PARAM)) {
+        if (Objects.equals(origin, TypeUtils.LOCAL) || Objects.equals(origin, TypeUtils.PARAM)) {
             var fieldComp = visit(refNode);
             computation.append(fieldComp.getComputation());
             return methodCallHelper(node, computation, code + type, fieldComp.getCode(), type, false);
@@ -398,26 +369,16 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
 
             arguments.stream().map(OllirExprResult::getComputation).toList().forEach(computation::append);
             if (type != null) {
-                computation.append(String.format("%s%s :=%s invokestatic(%s, \"%s\"%s)%s;\n",
-                        code, type, type,
-                        ref,
-                        node.get("name"),
-                        arguments.stream().map(OllirExprResult::getCode).reduce("", (a, b) -> a + "," + b),
-                        type
-                ));
+                computation.append(String.format("%s%s :=%s invokestatic(%s, \"%s\"%s)%s;\n", code, type, type, ref, node.get("name"), arguments.stream().map(OllirExprResult::getCode).reduce("", (a, b) -> a + "," + b), type));
                 code += type;
             } else {
-                code = String.format("invokestatic(%s, \"%s\"%s).V",
-                        ref,
-                        node.get("name"),
-                        arguments.stream().map(OllirExprResult::getCode).reduce("", (a, b) -> a + "," + b));
+                code = String.format("invokestatic(%s, \"%s\"%s).V", ref, node.get("name"), arguments.stream().map(OllirExprResult::getCode).reduce("", (a, b) -> a + "," + b));
             }
         }
         return new OllirExprResult(code, computation.toString());
     }
 
-    private OllirExprResult methodCallHelper(JmmNode node, StringBuilder computation, String code, String className,
-                                             String type, boolean forceNoType) {
+    private OllirExprResult methodCallHelper(JmmNode node, StringBuilder computation, String code, String className, String type, boolean forceNoType) {
         var children = node.getChildren();
         var argumentReturnType = table.getParametersTry(node.get("name"));
         var arguments = new ArrayList<OllirExprResult>();
@@ -448,20 +409,9 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
 
         arguments.stream().map(OllirExprResult::getComputation).toList().forEach(computation::append);
         if (type != null && !forceNoType) {
-            computation.append(String.format("%s :=%s invokevirtual(%s, \"%s\"%s)%s;\n",
-                    code, type,
-                    className,
-                    node.get("name"),
-                    arguments.stream().map(OllirExprResult::getCode).reduce("", (a, b) -> a + "," + b),
-                    type
-            ));
+            computation.append(String.format("%s :=%s invokevirtual(%s, \"%s\"%s)%s;\n", code, type, className, node.get("name"), arguments.stream().map(OllirExprResult::getCode).reduce("", (a, b) -> a + "," + b), type));
         } else {
-            code = String.format("invokevirtual(%s, \"%s\"%s)%s",
-                    className,
-                    node.get("name"),
-                    arguments.stream().map(OllirExprResult::getCode).reduce("", (a, b) -> a + "," + b),
-                    type != null ? type : ".V"
-            );
+            code = String.format("invokevirtual(%s, \"%s\"%s)%s", className, node.get("name"), arguments.stream().map(OllirExprResult::getCode).reduce("", (a, b) -> a + "," + b), type != null ? type : ".V");
         }
         return new OllirExprResult(code, computation.toString());
     }
