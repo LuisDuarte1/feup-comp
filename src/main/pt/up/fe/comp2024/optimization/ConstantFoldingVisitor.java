@@ -31,7 +31,7 @@ public class ConstantFoldingVisitor extends PreorderJmmVisitor<SymbolTable, Void
 
                 JmmNodeImpl node = new JmmNodeImpl("BooleanLiteral");
                 node.put("value", String.valueOf(value));
-                node.setHierarchy(binaryExpr.getHierarchy());
+                //node.setHierarchy(binaryExpr.getHierarchy());
                 binaryExpr.replace(node);
             } else if (op.equals("<")){
                 int valueExpr1 = Integer.parseInt(expr1.get("value"));
@@ -40,7 +40,7 @@ public class ConstantFoldingVisitor extends PreorderJmmVisitor<SymbolTable, Void
 
                 JmmNodeImpl node = new JmmNodeImpl("BooleanLiteral");
                 node.put("value", String.valueOf(value));
-                node.setHierarchy(binaryExpr.getHierarchy());
+                //node.setHierarchy(binaryExpr.getHierarchy());
                 binaryExpr.replace(node);
             } else {
                 int valueExpr1 = Integer.parseInt(expr1.get("value"));
@@ -55,7 +55,7 @@ public class ConstantFoldingVisitor extends PreorderJmmVisitor<SymbolTable, Void
 
                 JmmNodeImpl node = new JmmNodeImpl("IntegerLiteral");
                 node.put("value", String.valueOf(value));
-                node.setHierarchy(binaryExpr.getHierarchy());
+                //node.setHierarchy(binaryExpr.getHierarchy());
                 binaryExpr.replace(node);
             }
 
