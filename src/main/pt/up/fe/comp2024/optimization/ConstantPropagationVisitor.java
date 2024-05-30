@@ -36,7 +36,12 @@ public class ConstantPropagationVisitor extends PreorderJmmVisitor<SymbolTable, 
     }
 
     private Void visitVarRefExpr(JmmNode varRefExpr, SymbolTable table) {
-        if (!ASSIGN_STMT.check(varRefExpr.getParent()) && varRefExpr != varRefExpr.getParent().getChild(0)) {
+        if((WHILE_STMT.check(varRefExpr.getParent()) || (varRefExpr.getParent().getParent() != null && WHILE_STMT.check(varRefExpr.getParent().getParent())))
+        && varRefExpr == varRefExpr.getParent().getChild(0)){
+            dictionary.put(varRefExpr.get("name"), null);
+            return null;
+        }
+        if (!ASSIGN_STMT.check(varRefExpr.getParent()) || varRefExpr != varRefExpr.getParent().getChild(0)) {
             JmmNode value = dictionary.get(varRefExpr.get("name"));
             if (value != null) {
                 varRefExpr.replace(value);
