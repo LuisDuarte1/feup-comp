@@ -85,7 +85,6 @@ public class OptUtils {
     }
 
 
-
     public static String toOllirType(JmmNode typeNode) {
 
         //TODO: Check this
@@ -98,20 +97,28 @@ public class OptUtils {
         return toOllirType(typeName);
     }
 
+
     public static String toOllirType(Type type) {
-        return toOllirType(type.getName());
+        String typeName = type.getName();
+
+        String result = toOllirType(typeName);
+
+        if (type.isArray() && !result.startsWith("array.")) {
+            result = ".array" + result;
+        }
+
+        return result;
     }
 
     public static String toOllirType(String typeName) {
 
-        String type = "." + switch (typeName) {
+        String result = "." + switch (typeName) {
             case "IntType", "int" -> "i32";
             case "BoolType", "boolean" -> "bool";
+            case "IntArrayType", "NewArray", "int[]" -> "array.i32";
             default -> typeName;
         };
 
-        return type;
+        return result;
     }
-
-
 }
