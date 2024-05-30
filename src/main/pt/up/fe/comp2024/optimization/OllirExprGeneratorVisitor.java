@@ -1,6 +1,7 @@
 package pt.up.fe.comp2024.optimization;
 
 import org.specs.comp.ollir.ClassType;
+import pt.up.fe.comp.jmm.analysis.table.Symbol;
 import pt.up.fe.comp.jmm.analysis.table.SymbolTable;
 import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.ast.JmmNode;
@@ -55,25 +56,30 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
 
     public OllirExprResult visitArray(JmmNode node, Void unused) {
         List<JmmNode> children = node.getChildren();
-        StringBuilder computation = new StringBuilder();
-        String arrayTmp = OptUtils.getTemp();
 
         Type type = getExprType(node, table);
         String ollirType = OptUtils.toOllirType(type);
         String ollirElemType = ollirType.replaceFirst("\\.array", "");
 
-        computation.append(arrayTmp).append(ollirType).append(SPACE).append(ASSIGN).append(ollirType).append(SPACE);
-        computation.append("new(array,").append(SPACE).append(children.toArray().length).append(".i32").append(")").append(ollirType).append(END_STMT);
+        return arrayHelper(ollirType, ollirElemType, children);
+    }
+
+    private OllirExprResult arrayHelper(String arrayType, String elemType, List<JmmNode> children) {
+        StringBuilder computation = new StringBuilder();
+        String arrayTmp = OptUtils.getTemp();
+
+        computation.append(arrayTmp).append(arrayType).append(SPACE).append(ASSIGN).append(arrayType).append(SPACE);
+        computation.append("new(array,").append(SPACE).append(children.toArray().length).append(".i32").append(")").append(arrayType).append(END_STMT);
 
         for (int i = 0; i < children.size(); i++) {
             JmmNode child = children.get(i);
             OllirExprResult result = visit(child);
             computation.append(result.getComputation());
-            computation.append(arrayTmp).append("[").append(i).append(ollirElemType).append("]").append(ollirElemType).append(SPACE).append(ASSIGN).append(ollirElemType).append(SPACE);
+            computation.append(arrayTmp).append("[").append(i).append(elemType).append("]").append(elemType).append(SPACE).append(ASSIGN).append(elemType).append(SPACE);
             computation.append(result.getCode()).append(END_STMT);
         }
 
-        return new OllirExprResult(arrayTmp + ollirType, computation.toString());
+        return new OllirExprResult(arrayTmp + arrayType, computation.toString());
     }
 
     public OllirExprResult visitLengthCall(JmmNode node, Void unused) {
@@ -413,20 +419,33 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
     private OllirExprResult methodCallHelper(JmmNode node, StringBuilder computation, String code, String className,
                                              String type, boolean forceNoType) {
         var children = node.getChildren();
-        var arguments = IntStream.range(0, node.getNumChildren()).skip(1).boxed().toList().stream().map(i -> {
-            // we can only infer the type if it's on this class
+        var argumentReturnType = table.getParametersTry(node.get("name"));
+        var arguments = new ArrayList<OllirExprResult>();
+
+        for (int i = 1; i < node.getNumChildren(); i++) {
             var child = children.get(i);
-            var argumentReturnType = table.getParametersTry(node.get("name"));
 
             if (argumentReturnType.isEmpty() && METHOD_CALL.check(child)) {
                 var childReturnType = table.getReturnType(child.get("name"));
-                return visitForceTemp(child, OptUtils.toOllirType(childReturnType));
+                arguments.add(visitForceTemp(child, OptUtils.toOllirType(childReturnType)));
+            } else if (argumentReturnType.isPresent()) {
+                var childType = argumentReturnType.get().get(i - 1).getType();
+
+                if (childType.hasAttribute("isVarArgs") && childType.getObject("isVarArgs", Boolean.class)) {
+                    String arrayType = OptUtils.toOllirType(childType);
+                    String elemType = arrayType.replaceFirst("\\.array", "");
+                    arguments.add(arrayHelper(arrayType, elemType, children.subList(i, children.size())));
+                    break;
+                } else if (METHOD_CALL.check(child)) {
+                    arguments.add(visitForceTemp(child, OptUtils.toOllirType(argumentReturnType.get().get(i - 1).getType())));
+                } else {
+                    arguments.add(visit(child));
+                }
+            } else {
+                arguments.add(visit(child));
             }
-            if (argumentReturnType.isPresent() && METHOD_CALL.check(child)) {
-                return visitForceTemp(child, OptUtils.toOllirType(argumentReturnType.get().get(i - 1).getType()));
-            }
-            return visit(child);
-        }).toList();
+        }
+
         arguments.stream().map(OllirExprResult::getComputation).toList().forEach(computation::append);
         if (type != null && !forceNoType) {
             computation.append(String.format("%s :=%s invokevirtual(%s, \"%s\"%s)%s;\n",

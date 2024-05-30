@@ -115,7 +115,7 @@ public class OptUtils {
         String result = "." + switch (typeName) {
             case "IntType", "int" -> "i32";
             case "BoolType", "boolean" -> "bool";
-            case "IntArrayType", "NewArray", "int[]" -> "array.i32";
+            case "IntArrayType", "NewArray", "IntVarargsType", "int[]" -> "array.i32";
             default -> typeName;
         };
 
