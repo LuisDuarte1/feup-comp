@@ -8,7 +8,9 @@ import pt.up.fe.comp.jmm.ast.PreorderJmmVisitor;
 import pt.up.fe.comp2024.ast.Kind;
 import pt.up.fe.comp2024.ast.TypeUtils;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 import java.util.regex.Pattern;
 import java.util.stream.IntStream;
@@ -47,7 +49,31 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         addVisit(NEW_ARRAY, this::visitNewArray);
         addVisit(LIST_ACCESS, this::visitListAccess);
         addVisit(LENGTH_CALL, this::visitLengthCall);
+        addVisit(ARRAY, this::visitArray);
         setDefaultVisit(this::defaultVisit);
+    }
+
+    public OllirExprResult visitArray(JmmNode node, Void unused) {
+        List<JmmNode> children = node.getChildren();
+        StringBuilder computation = new StringBuilder();
+        String arrayTmp = OptUtils.getTemp();
+
+        Type type = getExprType(node, table);
+        String ollirType = OptUtils.toOllirType(type);
+        String ollirElemType = ollirType.replaceFirst("\\.array", "");
+
+        computation.append(arrayTmp).append(ollirType).append(SPACE).append(ASSIGN).append(ollirType).append(SPACE);
+        computation.append("new(array,").append(SPACE).append(children.toArray().length).append(".i32").append(")").append(ollirType).append(END_STMT);
+
+        for (int i = 0; i < children.size(); i++) {
+            JmmNode child = children.get(i);
+            OllirExprResult result = visit(child);
+            computation.append(result.getComputation());
+            computation.append(arrayTmp).append("[").append(i).append(ollirElemType).append("]").append(ollirElemType).append(SPACE).append(ASSIGN).append(ollirElemType).append(SPACE);
+            computation.append(result.getCode()).append(END_STMT);
+        }
+
+        return new OllirExprResult(arrayTmp + ollirType, computation.toString());
     }
 
     public OllirExprResult visitLengthCall(JmmNode node, Void unused) {
