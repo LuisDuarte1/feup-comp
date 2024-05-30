@@ -100,7 +100,6 @@ stmt
     | 'while' LPAREN whileCond=expr RPAREN whileExpr=stmt #WhileStmt
     | expr SEMI #ExprStmt
     | expr EQUALS expr SEMI #AssignStmt
-    | expr LBRACKET arrayIdx=expr RBRACKET EQUALS expr SEMI #ListAssignStmt
     ;
 
 expr

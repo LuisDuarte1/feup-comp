@@ -169,7 +169,11 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         Type thisType = TypeUtils.getExprType(node.getJmmChild(0), table);
         String typeString = OptUtils.toOllirType(thisType);
 
-        String origin = TypeUtils.getVarExprOrigin(node.getJmmChild(0), table);
+        JmmNode lhsVar = node.getJmmChild(0);
+        if (lhsVar.isInstance(LIST_ACCESS)) {
+            lhsVar = lhsVar.getChild(0);
+        }
+        String origin = TypeUtils.getVarExprOrigin(lhsVar, table);
         if (Objects.equals(origin, TypeUtils.FIELD)) {
             var rhs = exprVisitor.visitForceTemp(node.getJmmChild(1), typeString);
             code.append(rhs.getComputation());
@@ -278,7 +282,7 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         //parse return statement, if it exists
         var lastChild = node.getChildren().get(node.getNumChildren() - 1);
         if (!retType.equals("V") &&
-                !(BOOLEAN_LITERAL.check(lastChild) || INTEGER_LITERAL.check(lastChild) || VAR_REF_EXPR.check(lastChild))){
+                !(BOOLEAN_LITERAL.check(lastChild) || INTEGER_LITERAL.check(lastChild) || VAR_REF_EXPR.check(lastChild))) {
             var expr = exprVisitor.visitForceTemp(lastChild, retType);
             code.append(expr.getComputation());
             code.append(String.format("ret%s %s;", retType, expr.getCode()));
