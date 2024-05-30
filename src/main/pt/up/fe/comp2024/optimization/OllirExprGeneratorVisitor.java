@@ -44,7 +44,22 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         addVisit(THIS_LITERAL, this::visitThis);
         addVisit(PRIORITY_EXPR, this::visitPriorityExpr);
         addVisit(NEW_ARRAY, this::visitNewArray);
+        addVisit(LIST_ACCESS, this::visitListAccess);
         setDefaultVisit(this::defaultVisit);
+    }
+
+    public OllirExprResult visitListAccess(JmmNode node, Void unused) {
+        OllirExprResult array = visit(node.getJmmChild(0));
+        OllirExprResult index = visit(node.getJmmChild(1));
+
+        var code = new StringBuilder();
+        var computation = new StringBuilder();
+
+        JmmNode arrayNode = node.getJmmChild(0);
+
+        code.append(arrayNode.get("name")).append("[").append(index.getCode()).append("]").append(".i32");
+
+        return new OllirExprResult(code.toString(), array.getComputation() + index.getComputation());
     }
 
     public OllirExprResult visitNewArray(JmmNode node, Void unused) {

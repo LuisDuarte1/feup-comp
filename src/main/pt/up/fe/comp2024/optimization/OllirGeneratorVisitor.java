@@ -169,10 +169,13 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         Type thisType = TypeUtils.getExprType(node.getJmmChild(0), table);
         String typeString = OptUtils.toOllirType(thisType);
 
+        // If the lhs is a list access, fetch the array var ref expr to get its origin
         JmmNode lhsVar = node.getJmmChild(0);
         if (lhsVar.isInstance(LIST_ACCESS)) {
             lhsVar = lhsVar.getChild(0);
         }
+
+        // Get lhs origin (field)
         String origin = TypeUtils.getVarExprOrigin(lhsVar, table);
         if (Objects.equals(origin, TypeUtils.FIELD)) {
             var rhs = exprVisitor.visitForceTemp(node.getJmmChild(1), typeString);
