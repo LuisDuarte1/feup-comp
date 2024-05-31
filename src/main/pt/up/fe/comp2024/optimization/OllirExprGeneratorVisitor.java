@@ -395,7 +395,9 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
                 if (childType.hasAttribute("isVarArgs") && childType.getObject("isVarArgs", Boolean.class)) {
                     String arrayType = OptUtils.toOllirType(childType);
                     String elemType = arrayType.replaceFirst("\\.array", "");
-                    arguments.add(arrayHelper(arrayType, elemType, children.subList(i, children.size())));
+                    if (!child.isInstance(ARRAY)) {
+                        arguments.add(arrayHelper(arrayType, elemType, children.subList(i, children.size())));
+                    } else arguments.add(visit(child));
                     break;
                 } else if (METHOD_CALL.check(child)) {
                     arguments.add(visitForceTemp(child, OptUtils.toOllirType(argumentReturnType.get().get(i - 1).getType())));
