@@ -43,6 +43,12 @@ public class JasminTest {
         testOllirToJasmin("pt/up/fe/comp/cp2/jasmin/LessTest.ollir");
     }
 
+    @Test
+    public void operationsTest(){
+        testOllirToJasmin("pt/up/fe/comp/cp2/jasmin/Operations.ollir");
+
+    }
+
 
 
     @Test
