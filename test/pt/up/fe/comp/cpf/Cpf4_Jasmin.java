@@ -166,6 +166,11 @@ public class Cpf4_Jasmin {
     public void NestedIf2(){
         CpUtils.runJasmin(getJasminResult("control_flow/NestedIf2.ollir"), "10");
     }
+
+    @Test
+    public void ErmWhatASigma(){
+        //CpUtils.runJasmin(getJasminResult("control_flow/ErmWhatASigma.ollir"), "100");
+    }
     /*checks if the code of a simple WHILE statement is well executed */
     @Test
     public void section3_ControlFlow_While_Simple() {
