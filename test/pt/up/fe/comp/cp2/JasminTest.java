@@ -46,10 +46,12 @@ public class JasminTest {
     @Test
     public void operationsTest(){
         testOllirToJasmin("pt/up/fe/comp/cp2/jasmin/Operations.ollir");
-
     }
 
-
+    @Test
+    public void operationsSubDiv(){
+        testOllirToJasmin("pt/up/fe/comp/cp2/jasmin/OperationsSubDiv.ollir");
+    }
 
     @Test
     public void ollirToJasminInvoke() {

@@ -529,9 +529,10 @@ public class JasminGenerator {
 
         // generate code for loading what's on the right
         var rhs = generators.apply(assign.getRhs());
-        if(rhs.matches(".*iinc [0-9]+ -?[0-9]+\n")){
+        final Pattern regex = Pattern.compile(".*iinc ([0-9]+) -?[0-9]+\n", Pattern.DOTALL);
+        if(regex.matcher(rhs).matches()){
             code.append(rhs);
-            var matcher = Pattern.compile(".*iinc ([0-9]+) -?[0-9]+\n").matcher(rhs);
+            var matcher = regex.matcher(rhs);
             //noinspection ResultOfMethodCallIgnored
             matcher.find();
             var register = matcher.group(1);
@@ -635,7 +636,7 @@ public class JasminGenerator {
         if(binaryOp.getOperation().getOpType() == OperationType.SUB && binaryOp.getLeftOperand()
                 instanceof LiteralElement literalElement && binaryOp.getRightOperand() instanceof Operand operand){
             var reg = currentMethod.getVarTable().get(operand.getName()).getVirtualReg();
-            return String.format("iinc %d %d\n", reg, -Integer.parseInt(literalElement.getLiteral()));
+            return String.format("iload %d\nineg\nistore %d\niinc %d %d\n", reg, reg, reg, Integer.parseInt(literalElement.getLiteral()));
         }
 
         if(binaryOp.getOperation().getOpType() == OperationType.SUB && binaryOp.getRightOperand()
@@ -655,10 +656,15 @@ public class JasminGenerator {
         } else {
             code.append(lhs);
         }
+
         var rhs = generators.apply(binaryOp.getRightOperand());
-        if(rhs.matches("iinc [0-9]+ -?[0-9]+\n")){
+        final Pattern regex = Pattern.compile(".*iinc ([0-9]+) -?[0-9]+\n", Pattern.DOTALL);
+        if(regex.matcher(rhs).matches()){
             code.append(rhs);
-            var register = Pattern.compile("iinc ([0-9]+) .*\n").matcher(rhs).group(1);
+            var matcher = regex.matcher(rhs);
+            //noinspection ResultOfMethodCallIgnored
+            matcher.find();
+            var register = matcher.group(1);
             incrementCurrentStackLimit(1);
             code.append(String.format("iload %s", register)).append(NL);
 
