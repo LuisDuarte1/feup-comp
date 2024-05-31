@@ -42,6 +42,20 @@ public class JasminGenerator {
 
     private final FunctionClassMap<TreeNode, String> generators;
 
+
+    public String generateValidFieldString(String fieldName){
+        return switch(fieldName) {
+            case "class":
+                yield "class0";
+            case "field":
+                yield "field0";
+            case "method":
+                yield "method";
+            default:
+                yield fieldName;
+        };
+    }
+
     public JasminGenerator(OllirResult ollirResult) {
         this.ollirResult = ollirResult;
 
@@ -321,7 +335,7 @@ public class JasminGenerator {
         code.append(NL);
 
         code.append(String.format("getfield %s %s",
-                        className + "/" +getFieldInstruction.getField().getName(),
+                        className + "/" + generateValidFieldString(getFieldInstruction.getField().getName()),
                         getJasminTypeOfElement(getFieldInstruction.getField().getType())))
                 .append(NL);
         incrementCurrentStackLimit(-1+1);
@@ -355,7 +369,7 @@ public class JasminGenerator {
         code.append(generators.apply(putFieldInstruction.getValue()));
 
         code.append(String.format("putfield %s %s",
-                        className + "/" + putFieldInstruction.getField().getName(),
+                        className + "/" + generateValidFieldString(putFieldInstruction.getField().getName()),
                         getJasminTypeOfElement(putFieldInstruction.getField().getType())))
                 .append(NL);
         incrementCurrentStackLimit(-1+1);
@@ -383,7 +397,7 @@ public class JasminGenerator {
                 .stream().map((val) -> String.format(".field %s %s %s\n",
                         val.getFieldAccessModifier().name().equalsIgnoreCase("default")
                                 ? "public" : val.getFieldAccessModifier().name().toLowerCase(),
-                        val.getFieldName(),
+                        generateValidFieldString(val.getFieldName()),
                         getJasminTypeOfElement(val.getFieldType())))
                 .toList().forEach(code::append);
 

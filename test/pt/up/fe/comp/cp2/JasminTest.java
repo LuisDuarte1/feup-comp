@@ -54,6 +54,12 @@ public class JasminTest {
     }
 
     @Test
+    public void reservedKeywords(){
+        testOllirToJasmin("pt/up/fe/comp/cp2/jasmin/ReservedKeywords.ollir");
+
+    }
+
+    @Test
     public void ollirToJasminInvoke() {
         testOllirToJasmin("pt/up/fe/comp/cp2/jasmin/OllirToJasminInvoke.ollir");
     }
