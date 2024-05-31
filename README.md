@@ -1,20 +1,16 @@
 ## Group members
 
-- Aqua (upxxxxxxxxx@edu.fe.up.pt)
-- Ruby (upxxxxxxxxx@edu.fe.up.pt)
-- Kana (upxxxxxxxxx@edu.fe.up.pt)
+- Diogo Monteiro (up202108800@edu.fe.up.pt)
+- Luís Duarte (up202108734@edu.fe.up.pt)
+- Mª Rita Lopes (up202108819@edu.fe.up.pt)
 
 ## Work Distribution
 
-- Aqua - 33.33 %
-- Ruby - 33.33 %
-- Kana - 33.33 %
+- Diogo - 33.33 %
+- Luís - 33.33 %
+- Rita - 33.33 %
 
 ## Self-Assessment
 
-- We think our project deserves a ... out of 20.
+- We think our project deserves an 18 out of 20.
 
-## Extra Elements
-
-(Optional)
-- Our project supports...
