@@ -706,13 +706,13 @@ public class JasminGenerator {
             case LTH -> {
                 var elseLabel = OptUtils.getTemp();
                 var nextLabel = OptUtils.getTemp();
-                yield String.format("isub \nifge %s\n iload_1\n goto %s \n %s:\n iload_0\n %s:",
+                yield String.format("isub \nifge %s\n ldc 1\n goto %s \n %s:\n ldc 0\n %s:",
                         elseLabel, nextLabel, elseLabel, nextLabel);
             }
             case GTE -> {
                 var elseLabel = OptUtils.getTemp();
                 var nextLabel = OptUtils.getTemp();
-                yield String.format("isub \n ifle %s\n ldc iload_1\n goto %s \n %s:\n ldc iload_0\n %s:",
+                yield String.format("isub \n ifle %s\n ldc 1\n goto %s \n %s:\n ldc 0\n %s:",
                         elseLabel, nextLabel, elseLabel, nextLabel);
             }
             default -> throw new NotImplementedException(binaryOp.getOperation().getOpType());
