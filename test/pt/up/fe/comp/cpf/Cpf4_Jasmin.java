@@ -157,6 +157,15 @@ public class Cpf4_Jasmin {
         CpUtils.runJasmin(getJasminResult("control_flow/SimpleIfElseNot.ollir"), "10\n200");
     }
 
+    @Test
+    public void NestedIf1(){
+        CpUtils.runJasmin(getJasminResult("control_flow/NestedIf1.ollir"), "100");
+    }
+
+    @Test
+    public void NestedIf2(){
+        CpUtils.runJasmin(getJasminResult("control_flow/NestedIf2.ollir"), "10");
+    }
     /*checks if the code of a simple WHILE statement is well executed */
     @Test
     public void section3_ControlFlow_While_Simple() {

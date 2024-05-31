@@ -1,0 +1,53 @@
+import io;
+
+AddMultConstants {
+
+    .method public static main(args.array.String).V {
+
+        a.i32 :=.i32 10.i32;
+
+        b.i32 :=.i32 20.i32;
+
+        counter.i32 :=.i32 0.i32;
+
+        flag.bool :=.bool 1.bool;
+
+        t1.bool :=.bool a.i32 <.bool b.i32;
+        t2.bool :=.bool t1.bool &&.bool flag.bool;
+
+        if (t2.bool) goto if1;
+
+            a.i32 :=.i32 a.i32 -.i32 b.i32;
+
+        goto endif1;
+
+        if1:
+
+            a.i32 :=.i32 a.i32 +.i32 b.i32;
+
+            t5.bool :=.bool 30.i32 <.bool a.i32;
+
+            if (t5.bool) goto if2;
+
+                a.i32 :=.i32 10.i32;
+
+            goto endif2;
+
+            if2:
+
+                a.i32 :=.i32 a.i32 -.i32 5.i32;
+
+            endif2:
+
+        endif1:
+
+        invokestatic(io, "println", a.i32).V;
+
+        ret.V;
+
+    }
+
+    .construct AddMultConstants().V {
+        invokespecial(this, "<init>").V;
+    }
+}
