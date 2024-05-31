@@ -471,12 +471,18 @@ public class JasminGenerator {
                 .append(NL);
 
 
-        String lastLabel = "";
+        Set<String> lastLabels = new HashSet<>();
         for (var inst : method.getInstructions()) {
-            var label = method.getLabels(inst);
-            if(label != null && !label.isEmpty() && !Objects.equals(label.get(label.size() - 1), lastLabel)){
-                code.append(label.get(label.size() - 1)).append(":").append(NL);
-                lastLabel = label.get(label.size() - 1);
+            var label = new HashSet<>(method.getLabels(inst));
+            var differences = new HashSet<>(method.getLabels(inst));
+            if(!label.isEmpty()){
+                differences.removeAll(lastLabels);
+                if(!differences.isEmpty()){
+                    differences.forEach((diff) -> {
+                        code.append(diff).append(":").append(NL);
+                    });
+                    lastLabels = label;
+                }
             }
             var instCode = StringLines.getLines(generators.apply(inst)).stream()
                     .collect(Collectors.joining(NL + TAB, TAB, NL));
