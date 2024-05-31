@@ -4,8 +4,10 @@ AddMultConstants {
         tmp0.array.i32 :=.array.i32 new(array, 1.i32).array.i32;
         tmp0[0.i32].i32 :=.i32 1.i32;
         a.array.i32 :=.array.i32 tmp0.array.i32;
-        tmp1.array.i32 :=.array.i32 new(array, 1.i32).array.i32;
+        tmp1.array.i32 :=.array.i32 new(array, 3.i32).array.i32;
         tmp1[0.i32].i32 :=.i32 3.i32;
+        tmp1[1.i32].i32 :=.i32 3.i32;
+        tmp1[2.i32].i32 :=.i32 3.i32;
         b.i32 :=.i32 tmp1[2.i32].i32;
         tmp3.array.i32 :=.array.i32 new(array, 1.i32).array.i32;
         tmp3[0.i32].i32 :=.i32 1.i32;

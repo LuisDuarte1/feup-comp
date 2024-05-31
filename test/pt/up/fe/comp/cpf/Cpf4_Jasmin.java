@@ -169,8 +169,15 @@ public class Cpf4_Jasmin {
 
     @Test
     public void ErmWhatASigma(){
-        //CpUtils.runJasmin(getJasminResult("control_flow/ErmWhatASigma.ollir"), "100");
+        CpUtils.runJasmin(getJasminResult("control_flow/ErmWhatASigma.ollir"), "100");
     }
+
+    @Test
+    public void SkibidiToilet(){
+        CpUtils.runJasmin(getJasminResult("control_flow/SkibidiToilet.ollir"), "");
+
+    }
+
     /*checks if the code of a simple WHILE statement is well executed */
     @Test
     public void section3_ControlFlow_While_Simple() {

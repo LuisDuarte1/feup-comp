@@ -206,8 +206,6 @@ public class JasminGenerator {
                     String jasminArrayType = getJasminArrayType((ArrayType) returnType);
                     code.append(String.format("newarray %s", jasminArrayType)).append(NL);
                     incrementCurrentStackLimit(1);
-                    code.append("dup").append(NL);
-                    incrementCurrentStackLimit(1);
                 }
 
             }
