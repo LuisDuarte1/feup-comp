@@ -42,6 +42,20 @@ public class JasminGenerator {
 
     private final FunctionClassMap<TreeNode, String> generators;
 
+
+    public String generateValidFieldString(String fieldName){
+        return switch(fieldName) {
+            case "class":
+                yield "class0";
+            case "field":
+                yield "field0";
+            case "method":
+                yield "method";
+            default:
+                yield fieldName;
+        };
+    }
+
     public JasminGenerator(OllirResult ollirResult) {
         this.ollirResult = ollirResult;
 
@@ -321,7 +335,7 @@ public class JasminGenerator {
         code.append(NL);
 
         code.append(String.format("getfield %s %s",
-                        className + "/" +getFieldInstruction.getField().getName(),
+                        className + "/" + generateValidFieldString(getFieldInstruction.getField().getName()),
                         getJasminTypeOfElement(getFieldInstruction.getField().getType())))
                 .append(NL);
         incrementCurrentStackLimit(-1+1);
@@ -355,7 +369,7 @@ public class JasminGenerator {
         code.append(generators.apply(putFieldInstruction.getValue()));
 
         code.append(String.format("putfield %s %s",
-                        className + "/" + putFieldInstruction.getField().getName(),
+                        className + "/" + generateValidFieldString(putFieldInstruction.getField().getName()),
                         getJasminTypeOfElement(putFieldInstruction.getField().getType())))
                 .append(NL);
         incrementCurrentStackLimit(-1+1);
@@ -383,7 +397,7 @@ public class JasminGenerator {
                 .stream().map((val) -> String.format(".field %s %s %s\n",
                         val.getFieldAccessModifier().name().equalsIgnoreCase("default")
                                 ? "public" : val.getFieldAccessModifier().name().toLowerCase(),
-                        val.getFieldName(),
+                        generateValidFieldString(val.getFieldName()),
                         getJasminTypeOfElement(val.getFieldType())))
                 .toList().forEach(code::append);
 
@@ -457,12 +471,18 @@ public class JasminGenerator {
                 .append(NL);
 
 
-        String lastLabel = "";
+        Set<String> lastLabels = new HashSet<>();
         for (var inst : method.getInstructions()) {
-            var label = method.getLabels(inst);
-            if(label != null && !label.isEmpty() && !Objects.equals(label.get(label.size() - 1), lastLabel)){
-                code.append(label.get(label.size() - 1)).append(":").append(NL);
-                lastLabel = label.get(label.size() - 1);
+            var label = new HashSet<>(method.getLabels(inst));
+            var differences = new HashSet<>(method.getLabels(inst));
+            if(!label.isEmpty()){
+                differences.removeAll(lastLabels);
+                if(!differences.isEmpty()){
+                    differences.forEach((diff) -> {
+                        code.append(diff).append(":").append(NL);
+                    });
+                    lastLabels = label;
+                }
             }
             var instCode = StringLines.getLines(generators.apply(inst)).stream()
                     .collect(Collectors.joining(NL + TAB, TAB, NL));
@@ -686,13 +706,13 @@ public class JasminGenerator {
             case LTH -> {
                 var elseLabel = OptUtils.getTemp();
                 var nextLabel = OptUtils.getTemp();
-                yield String.format("isub \nifge %s\n ldc 1\n goto %s \n %s:\n ldc 0\n %s:",
+                yield String.format("isub \nifge %s\n iload_1\n goto %s \n %s:\n iload_0\n %s:",
                         elseLabel, nextLabel, elseLabel, nextLabel);
             }
             case GTE -> {
                 var elseLabel = OptUtils.getTemp();
                 var nextLabel = OptUtils.getTemp();
-                yield String.format("isub \n ifle %s\n ldc 1\n goto %s \n %s:\n ldc 0\n %s:",
+                yield String.format("isub \n ifle %s\n ldc iload_1\n goto %s \n %s:\n ldc iload_0\n %s:",
                         elseLabel, nextLabel, elseLabel, nextLabel);
             }
             default -> throw new NotImplementedException(binaryOp.getOperation().getOpType());

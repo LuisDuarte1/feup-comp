@@ -1,0 +1,34 @@
+import io;
+A {
+
+.field public field.i32;
+.field public fb.bool;
+.method public static main(args.array.String).V {
+tmp79.A :=.A new(A).A;
+invokespecial(tmp79.A,"<init>").V;
+a.A :=.A tmp79.A;
+tmp81.bool :=.bool invokevirtual(a.A, "foo").bool;
+
+invokestatic(io, "println",tmp81.bool).V;
+ret.V;
+}
+.method public bar(args.array.i32).bool {
+tmp83.bool :=.bool args[0.i32].i32 <.bool 0.i32;
+b.bool :=.bool tmp83.bool;
+ret.bool b.bool;
+}
+
+.method public foo().bool {
+tmp85.array.i32 :=.array.i32 new(array, 3.i32).array.i32;
+tmp85[0.i32].i32 :=.i32 1.i32;
+tmp85[1.i32].i32 :=.i32 2.i32;
+tmp85[2.i32].i32 :=.i32 3.i32;
+tmp84.bool :=.bool invokevirtual(this.A, "bar",tmp85.array.i32).bool;
+b.bool :=.bool tmp84.bool;
+ret.bool b.bool;
+}
+
+.construct A().V {
+invokespecial(this, "<init>").V;
+}
+}
