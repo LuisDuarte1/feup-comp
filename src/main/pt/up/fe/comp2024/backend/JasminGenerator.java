@@ -190,7 +190,6 @@ public class JasminGenerator {
                 methodUsedLocals.add(arrayRef);
                 incrementCurrentStackLimit(1);
                 code.append("arraylength").append(NL);
-                incrementCurrentStackLimit(-1);
             }
             case NEW -> {
                 var returnType = callInstruction.getReturnType();
