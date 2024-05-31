@@ -1,0 +1,28 @@
+import io;
+AddMultConstants {
+    .method public static main(args.array.String).V {
+        tmp0.array.i32 :=.array.i32 new(array, 1.i32).array.i32;
+        tmp0[0.i32].i32 :=.i32 1.i32;
+        a.array.i32 :=.array.i32 tmp0.array.i32;
+        tmp1.array.i32 :=.array.i32 new(array, 1.i32).array.i32;
+        tmp1[0.i32].i32 :=.i32 3.i32;
+        b.i32 :=.i32 tmp1[2.i32].i32;
+        tmp3.array.i32 :=.array.i32 new(array, 1.i32).array.i32;
+        tmp3[0.i32].i32 :=.i32 1.i32;
+        tmp5.bool :=.bool tmp3[0.i32].i32 <.bool b.i32;
+        if (tmp5.bool) goto if1;
+        tmp8.array.i32 :=.array.i32 new(array, 1.i32).array.i32;
+        tmp8[0.i32].i32 :=.i32 300.i32;
+        a.array.i32 :=.array.i32 tmp8.array.i32;
+        goto end_if1;
+        if1:
+        a[0.i32].i32 :=.i32 100.i32;
+        end_if1:
+        tmp10.i32 :=.i32 a[0.i32].i32;
+        invokestatic(io, "println",tmp10.i32).V;
+        ret.V;
+    }
+    .construct AddMultConstants().V {
+        invokespecial(this, "<init>").V;
+    }
+}
