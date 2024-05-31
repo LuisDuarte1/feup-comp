@@ -535,6 +535,7 @@ public class JasminGenerator {
             //noinspection ResultOfMethodCallIgnored
             matcher.find();
             var register = matcher.group(1);
+            incrementCurrentStackLimit(1);
             code.append(String.format("iload %s", register)).append(NL);
         }
         else {
@@ -648,6 +649,7 @@ public class JasminGenerator {
         if(lhs.matches("iinc [0-9]+ -?[0-9]+\n")){
             code.append(lhs);
             var register = Pattern.compile("iinc ([0-9]+) .*\n").matcher(lhs).group(1);
+            incrementCurrentStackLimit(1);
             code.append(String.format("iload %s", register)).append(NL);
 
         } else {
@@ -657,6 +659,7 @@ public class JasminGenerator {
         if(rhs.matches("iinc [0-9]+ -?[0-9]+\n")){
             code.append(rhs);
             var register = Pattern.compile("iinc ([0-9]+) .*\n").matcher(rhs).group(1);
+            incrementCurrentStackLimit(1);
             code.append(String.format("iload %s", register)).append(NL);
 
         } else {
